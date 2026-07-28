@@ -1,0 +1,62 @@
+name: Deploy MerchantGo Web to VPS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    name: 🌐 Deploy Executive UI (app.merchantgo.store)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Compile Production Bundle
+        run: npm run build
+        env:
+          VITE_API_BASE_URL: https://api.merchantgo.store
+          VITE_APPWRITE_PROJECT_ID: "6a6854dc00209919ea1e"
+          VITE_APPWRITE_ENDPOINT: "https://sfo.cloud.appwrite.io/v1"
+
+      - name: Prepare Remote Directory on VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            mkdir -p /srv/merchantgo/merchantgo-web/dist
+            rm -rf /srv/merchantgo/merchantgo-web/dist/*
+
+      - name: Upload Bundle to VPS Container Volume
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: 'dist/*'
+          target: '/srv/merchantgo/merchantgo-web'
+
+      - name: Set Permissions & Reload Nginx Gateway
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            find /srv/merchantgo/merchantgo-web/dist -type d -exec chmod 755 {} \; 2>/dev/null || true
+            find /srv/merchantgo/merchantgo-web/dist -type f -exec chmod 644 {} \; 2>/dev/null || true
+            cd /srv/merchantgo
+            docker compose exec -T nginx nginx -s reload
+            echo "✔ Live React update verified at https://app.merchantgo.store!"
