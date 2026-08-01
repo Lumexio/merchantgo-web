@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Utensils, DollarSign, Activity, Layers, Plus, Lock, TrendingUp, ShieldAlert, CheckCircle2, Zap, LogOut, Shield, User, KeyRound, Building2, Truck, EyeOff, AlertTriangle, Cloud } from 'lucide-react';
+import { Utensils, DollarSign, Activity, Layers, Plus, Lock, TrendingUp, ShieldAlert, CheckCircle2, Zap, LogOut, Shield, User, KeyRound, Building2, Truck, EyeOff, AlertTriangle, Cloud, Database, Settings } from 'lucide-react';
 import { registerAppwriteUser, loginAppwriteUser, checkAppwriteSession, logoutAppwriteSession } from './appwrite';
 import './index.css';
 
@@ -277,23 +277,38 @@ function AuthPortal({ onAuthenticate }) {
 // ==========================================
 export default function App() {
   const [session, setSession] = useState(null); // null when unauthenticated
-  const [activeTab, setActiveTab] = useState('analytics'); // 'analytics' | 'floor' | 'menu' | 'corte'
+  const [activeTab, setActiveTab] = useState('analytics'); // 'analytics' | 'floor' | 'menu' | 'corte' | 'settings'
   const [corteResult, setCorteResult] = useState(null);
   const [notification, setNotification] = useState(null);
 
+  // --- PHASE 1: STORAGE & CAPACITY STATE ---
+  const [storageProvider, setStorageProvider] = useState('APPWRITE_SAAS'); // 'APPWRITE_SAAS' | 'GOOGLE_CLOUD'
+  const [saasPlan, setSaasPlan] = useState('FREE'); // 'FREE' | 'PRO' | 'ENTERPRISE'
+  const PLAN_LIMITS = { FREE: { menuItems: 25, staff: 5 }, PRO: { menuItems: 100, staff: 25 }, ENTERPRISE: { menuItems: 250, staff: 100 } };
+  
   const [orders, setOrders] = useState([
     { id: 'ORD-801', table: 'Express Counter #1', server: 'Lone Owner (Self)', total: 42.50, time: '2 mins ago', status: 'READY_TO_CLOSE', items: ['Gourmet Smash Burger x2', 'Truffle Fries'] },
     { id: 'ORD-802', table: 'Express Counter #2', server: 'Helper #1 (Marco)', total: 18.50, time: '5 mins ago', status: 'OPEN', items: ['Ribeye Tacos x1', 'Agave Lemonade'] },
     { id: 'ORD-803', table: 'Table #8 (Patio)', server: 'Waiter PIN #12', total: 125.00, time: '41 mins ago', status: 'READY_TO_CLOSE', items: ['Tomahawk Steak', 'Cabernet Sauvignon Bottle'] }
   ]);
 
-  const [menuItems] = useState([
-    { name: 'Gourmet Smash Burger', cat: 'Food Truck Specials', price: '$16.50', ing: 'Double Chuck Patty, Brioche, Special Sauce (StockMachine: PATTY_CHUCK_01)' },
-    { name: 'Ribeye Tacos (3pc)', cat: 'Main Kitchen', price: '$18.50', ing: 'Tortillas, Prime Ribeye, Cilantro, Avocado Salsa' },
-    { name: 'Agave Craft Lemonade', cat: 'Beverages', price: '$6.50', ing: 'Fresh Lemon Juice, Organic Agave Nectar, Sparkling Water' },
-    { name: 'Añejo Margarita', cat: 'Bar & Cocktail', price: '$14.00', ing: 'Añejo Tequila, Fresh Lime, Agave Nectar, Salt' },
-    { name: 'Tomahawk Steak (32oz)', cat: 'Main Kitchen', price: '$85.00', ing: 'Prime Tomahawk, Garlic Butter, Rosemary Herb' },
+  // --- PHASE 1: INGREDIENT & MENU DB ---
+  const [menuItems, setMenuItems] = useState([
+    { id: 'm1', name: 'Gourmet Smash Burger', cat: 'Food Truck Specials', price: '$16.50', ing: 'Double Chuck Patty, Brioche, Special Sauce (StockMachine: PATTY_CHUCK_01)', rawIngredients: [] },
+    { id: 'm2', name: 'Ribeye Tacos (3pc)', cat: 'Main Kitchen', price: '$18.50', ing: 'Tortillas, Prime Ribeye, Cilantro, Avocado Salsa', rawIngredients: [] },
+    { id: 'm3', name: 'Agave Craft Lemonade', cat: 'Beverages', price: '$6.50', ing: 'Fresh Lemon Juice, Organic Agave Nectar, Sparkling Water', rawIngredients: [] },
+    { id: 'm4', name: 'Añejo Margarita', cat: 'Bar & Cocktail', price: '$14.00', ing: 'Añejo Tequila, Fresh Lime, Agave Nectar, Salt', rawIngredients: [] },
+    { id: 'm5', name: 'Tomahawk Steak (32oz)', cat: 'Main Kitchen', price: '$85.00', ing: 'Prime Tomahawk, Garlic Butter, Rosemary Herb', rawIngredients: [] },
   ]);
+
+  const [ingredients, setIngredients] = useState([
+    { id: 'i1', name: 'Onions', stockCode: 'VEG_ONION_01' },
+    { id: 'i2', name: 'Tomato', stockCode: 'VEG_TOMATO_01' },
+    { id: 'i3', name: 'Double Chuck Patty', stockCode: 'PATTY_CHUCK_01' },
+  ]);
+  
+  const [showIngredientManager, setShowIngredientManager] = useState(false);
+  const [editingMenuItemId, setEditingMenuItemId] = useState(null);
 
   const topMovers = [
     { name: 'Gourmet Smash Burger', volume: '142 units sold today', revenue: '$2,343.00', trend: '+28% vs last Friday', icon: '🍔' },
@@ -399,6 +414,13 @@ export default function App() {
             style={{ padding: '8px 16px', fontSize: '0.88rem', backgroundColor: activeTab === 'corte' ? '#00b368' : '' }}
           >
             <DollarSign size={16} /> Corte de Caja (Z-Report)
+          </button>
+          <button 
+            onClick={() => setActiveTab('settings')}
+            className={activeTab === 'settings' ? 'btn-pos' : 'btn-secondary'}
+            style={{ padding: '8px 16px', fontSize: '0.88rem' }}
+          >
+            <Settings size={16} /> Settings & Storage {session.role === 'CASHIER' && '🔒'}
           </button>
         </nav>
 
@@ -700,9 +722,14 @@ export default function App() {
                     </p>
                   </div>
                   {session.role === 'ADMIN' && (
-                    <button onClick={() => alert('Opening Menu Item Creation Workshop...')} className="btn-pos" style={{ gap: '6px' }}>
-                      + Create Menu Category / Item
-                    </button>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <button onClick={() => setShowIngredientManager(true)} className="btn-secondary" style={{ gap: '6px', padding: '8px 16px' }}>
+                        <Database size={16} /> Manage Ingredients
+                      </button>
+                      <button onClick={() => alert('Opening Menu Item Creation Workshop...')} className="btn-pos" style={{ gap: '6px' }}>
+                        + Create Menu Item
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -727,10 +754,14 @@ export default function App() {
                             </span>
                           </td>
                           <td style={{ padding: '16px 12px', fontWeight: 800, color: 'var(--primary-pos)' }}>{item.price}</td>
-                          <td style={{ padding: '16px 12px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>{item.ing}</td>
+                          <td style={{ padding: '16px 12px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                            {item.rawIngredients && item.rawIngredients.length > 0 
+                              ? item.rawIngredients.map(id => ingredients.find(i => i.id === id)?.name).join(', ') 
+                              : item.ing}
+                          </td>
                           <td style={{ padding: '16px 12px', textAlign: 'right' }}>
                             {session.role === 'ADMIN' ? (
-                              <button onClick={() => alert(`Editing price and StockMachine recipe tags for ${item.name}`)} style={{ background: 'transparent', border: '1px solid var(--border-glass)', padding: '6px 12px', borderRadius: '8px', color: '#fff', cursor: 'pointer', fontSize: '0.8rem' }}>
+                              <button onClick={() => setEditingMenuItemId(item.id)} style={{ background: 'transparent', border: '1px solid var(--border-glass)', padding: '6px 12px', borderRadius: '8px', color: '#fff', cursor: 'pointer', fontSize: '0.8rem' }}>
                                 Edit Specs
                               </button>
                             ) : (
@@ -741,6 +772,61 @@ export default function App() {
                       ))}
                     </tbody>
                   </table>
+                </div>
+              </div>
+            )}
+
+            {/* INGREDIENT MANAGER OVERLAY */}
+            {showIngredientManager && (
+              <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="glass-panel" style={{ width: '480px', padding: '32px' }}>
+                  <h2 style={{ fontSize: '1.8rem', marginBottom: '16px', color: '#fff' }}>Ingredient Database</h2>
+                  <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '20px', border: '1px solid var(--border-glass)', borderRadius: '8px' }}>
+                    {ingredients.map(ing => (
+                      <div key={ing.id} style={{ padding: '12px', borderBottom: '1px solid var(--border-glass)', display: 'flex', justifyContent: 'space-between', color: '#fff' }}>
+                        <span>{ing.name}</span>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{ing.stockCode}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
+                    <input type="text" placeholder="New Ingredient Name" style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid var(--border-glass)', background: 'rgba(0,0,0,0.5)', color: '#fff' }} value={newIngredientName} onChange={e => setNewIngredientName(e.target.value)} />
+                    <button className="btn-pos" onClick={() => { if(newIngredientName) { setIngredients([...ingredients, { id: 'i'+Date.now(), name: newIngredientName, stockCode: 'NEW_ING_01' }]); setNewIngredientName(''); } }}>Add</button>
+                  </div>
+                  <button className="btn-secondary" style={{ width: '100%' }} onClick={() => setShowIngredientManager(false)}>Close Database</button>
+                </div>
+              </div>
+            )}
+
+            {/* EDIT SPECS / MAPPING OVERLAY */}
+            {editingMenuItemId && (
+              <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="glass-panel" style={{ width: '480px', padding: '32px' }}>
+                  <h2 style={{ fontSize: '1.6rem', marginBottom: '8px', color: '#fff' }}>Map Ingredients</h2>
+                  <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '20px' }}>Select the raw ingredients that comprise this menu item.</p>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px', maxHeight: '300px', overflowY: 'auto' }}>
+                    {ingredients.map(ing => {
+                      const menuItem = menuItems.find(m => m.id === editingMenuItemId);
+                      const isMapped = menuItem?.rawIngredients?.includes(ing.id);
+                      return (
+                        <label key={ing.id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px', border: '1px solid var(--border-glass)', borderRadius: '8px', cursor: 'pointer', background: isMapped ? 'rgba(255, 107, 0, 0.1)' : 'rgba(0,0,0,0.2)' }}>
+                          <input type="checkbox" checked={isMapped || false} onChange={() => {
+                            setMenuItems(menuItems.map(m => {
+                              if (m.id === editingMenuItemId) {
+                                const raw = m.rawIngredients || [];
+                                return { ...m, rawIngredients: isMapped ? raw.filter(id => id !== ing.id) : [...raw, ing.id] };
+                              }
+                              return m;
+                            }));
+                          }} />
+                          <span style={{ color: '#fff' }}>{ing.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+
+                  <button className="btn-pos" style={{ width: '100%' }} onClick={() => setEditingMenuItemId(null)}>Save & Close</button>
                 </div>
               </div>
             )}
@@ -833,7 +919,104 @@ export default function App() {
 
           </div>
         )}
+        {/* VIEW 5: SETTINGS & STORAGE CAPACITY */}
+        {activeTab === 'settings' && (
+          <div>
+            {session.role === 'CASHIER' ? (
+              <SecurityShield requiredRole="MANAGER" currentRole={session.role} onOverrideRequest={() => { const p = prompt('Enter Manager or Admin Secret PIN override:'); if(p==='1234'||p==='5678') setSession({...session, role: 'MANAGER'}); else alert('Incorrect clearance PIN!'); }} />
+            ) : (
+              <div>
+                <div style={{ marginBottom: '28px' }}>
+                  <h1 style={{ fontSize: '2.4rem', marginBottom: '6px' }}>Settings & Storage Architecture</h1>
+                  <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
+                    Configure your backend synchronization provider and monitor your current SaaS capacity consumption.
+                  </p>
+                </div>
 
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
+                  
+                  {/* Provider Selection */}
+                  <div className="glass-panel">
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2rem', marginBottom: '16px', color: '#fff' }}>
+                      <Database size={20} color="var(--primary-pos)" /> Backend Sync Provider
+                    </h3>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
+                      Select whether to securely sync data to the Appwrite Cloud (bound by your SaaS plan limits) or bypass limits by bringing your own Google Cloud Storage JSON bridge.
+                    </p>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', border: storageProvider === 'APPWRITE_SAAS' ? '1px solid var(--primary-pos)' : '1px solid var(--border-glass)', borderRadius: '12px', cursor: 'pointer', background: storageProvider === 'APPWRITE_SAAS' ? 'rgba(255, 107, 0, 0.05)' : 'rgba(0,0,0,0.3)' }}>
+                        <input type="radio" name="storage" value="APPWRITE_SAAS" checked={storageProvider === 'APPWRITE_SAAS'} onChange={() => setStorageProvider('APPWRITE_SAAS')} />
+                        <div>
+                          <span style={{ display: 'block', fontWeight: 600, color: '#fff' }}>Appwrite Cloud Server</span>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Bound to MerchantGo SaaS Limits</span>
+                        </div>
+                      </label>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', border: storageProvider === 'GOOGLE_CLOUD' ? '1px solid #00ff66' : '1px solid var(--border-glass)', borderRadius: '12px', cursor: 'pointer', background: storageProvider === 'GOOGLE_CLOUD' ? 'rgba(0, 255, 102, 0.05)' : 'rgba(0,0,0,0.3)' }}>
+                        <input type="radio" name="storage" value="GOOGLE_CLOUD" checked={storageProvider === 'GOOGLE_CLOUD'} onChange={() => setStorageProvider('GOOGLE_CLOUD')} />
+                        <div>
+                          <span style={{ display: 'block', fontWeight: 600, color: '#fff' }}>Google Cloud Storage (BYOS)</span>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Unlimited Enterprise Bypass</span>
+                        </div>
+                      </label>
+                    </div>
+
+                    <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border-glass)' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>Active SaaS Plan Simulation:</span>
+                      <select value={saasPlan} onChange={(e) => setSaasPlan(e.target.value)} style={{ background: '#000', color: '#fff', border: '1px solid var(--border-glass)', padding: '8px', borderRadius: '8px', width: '100%' }}>
+                        <option value="FREE">Free Tier (25 Items)</option>
+                        <option value="PRO">Pro Tier (100 Items)</option>
+                        <option value="ENTERPRISE">Enterprise Tier (250 Items)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Capacity Indicators */}
+                  <div className="glass-panel">
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2rem', marginBottom: '16px', color: '#fff' }}>
+                      <Activity size={20} color="var(--primary-pos)" /> Capacity Quotas
+                    </h3>
+                    
+                    {storageProvider === 'GOOGLE_CLOUD' ? (
+                      <div style={{ background: 'rgba(0, 255, 102, 0.08)', border: '1px solid rgba(0,255,102,0.3)', padding: '32px 20px', borderRadius: '12px', textAlign: 'center' }}>
+                        <Cloud size={48} color="#00ff66" style={{ margin: '0 auto 16px' }} />
+                        <h4 style={{ color: '#00ff66', fontSize: '1.2rem', marginBottom: '8px' }}>Unlimited Cloud Bypass Active</h4>
+                        <p style={{ color: '#999', fontSize: '0.9rem' }}>You are syncing data through your personal Google Cloud architecture. SaaS Plan database restrictions have been lifted.</p>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                        {/* Menu Capacity Bar */}
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
+                            <span style={{ color: '#fff' }}>Registered Menu Items</span>
+                            <span style={{ fontWeight: 600, color: 'var(--primary-pos)' }}>{menuItems.length} / {PLAN_LIMITS[saasPlan].menuItems}</span>
+                          </div>
+                          <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '999px', overflow: 'hidden' }}>
+                            <div style={{ width: `${(menuItems.length / PLAN_LIMITS[saasPlan].menuItems) * 100}%`, height: '100%', background: 'var(--primary-pos)', transition: 'width 0.3s ease' }}></div>
+                          </div>
+                          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '6px' }}>Menu items mapped to raw ingredients.</p>
+                        </div>
+
+                        {/* Staff Capacity Bar */}
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
+                            <span style={{ color: '#fff' }}>Active Staff / Users</span>
+                            <span style={{ fontWeight: 600, color: '#00b368' }}>3 / {PLAN_LIMITS[saasPlan].staff}</span>
+                          </div>
+                          <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '999px', overflow: 'hidden' }}>
+                            <div style={{ width: `${(3 / PLAN_LIMITS[saasPlan].staff) * 100}%`, height: '100%', background: '#00b368', transition: 'width 0.3s ease' }}></div>
+                          </div>
+                          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '6px' }}>Waitstaff and cashiers registered under this tenant.</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </main>
 
       <footer style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', backgroundColor: '#070709' }}>
