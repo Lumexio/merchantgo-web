@@ -18,11 +18,12 @@ function saveSession(session) {
 }
 
 export async function registerAppwriteUser(email, password, name, mode) {
-  return saveSession(await request('/auth/register', {
+  await request('/auth/register', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password, name, mode }),
-  }));
+  });
+  return loginAppwriteUser(email, password);
 }
 
 export async function loginAppwriteUser(email, password) {
