@@ -1,12 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { Utensils, DollarSign, Activity, Layers, Plus, Lock, TrendingUp, ShieldAlert, CheckCircle2, Zap, LogOut, Shield, User, KeyRound, Building2, Truck, EyeOff, AlertTriangle, Cloud, Database, Settings } from 'lucide-react';
-import { registerAppwriteUser, loginAppwriteUser, checkAppwriteSession, logoutAppwriteSession } from './appwrite';
+import React, { useEffect, useRef, useState } from 'react';
+import { Utensils, DollarSign, Activity, Layers, Plus, Lock, TrendingUp, ShieldAlert, LogOut, KeyRound, Cloud, Database, Settings, Download, Upload } from 'lucide-react';
+import {
+  checkAppwriteSession,
+  createTenantMenuItem,
+  exportTenantSnapshot,
+  googleDriveStatus,
+  importTenantSnapshot,
+  listTenantBranches,
+  listTenantMenuItems,
+  listTenantReports,
+  listTenantStaff,
+  loginAppwriteUser,
+  loginMerchantGoPin,
+  logoutAppwriteSession,
+  merchantGoRequest,
+  connectGoogleDrive,
+  pullCatalogFromGoogleDrive,
+  pushCatalogToGoogleDrive,
+  registerAppwriteUser,
+} from './appwrite';
 import './index.css';
 
 // ==========================================
 // 1. SECURITY SHIELD COMPONENT (RBAC GUARD)
 // ==========================================
-function SecurityShield({ requiredRole, currentRole, onOverrideRequest }) {
+function SecurityShield({ requiredRole, currentRole }) {
   return (
     <div className="glass-panel" style={{ textAlign: 'center', padding: '64px 28px', border: '1px solid rgba(255, 77, 77, 0.3)', background: 'radial-gradient(circle at center, rgba(255, 77, 77, 0.08) 0%, rgba(12,13,18,0.95) 100%)', maxWidth: '680px', margin: '40px auto', borderRadius: '24px' }}>
       <div style={{ width: '84px', height: '84px', borderRadius: '50%', background: 'rgba(255, 77, 77, 0.12)', border: '2px solid rgba(255, 77, 77, 0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
@@ -17,16 +35,11 @@ function SecurityShield({ requiredRole, currentRole, onOverrideRequest }) {
       </span>
       <h2 style={{ fontSize: '2.2rem', marginTop: '16px', marginBottom: '12px', color: '#fff' }}>Administrative Authority Required</h2>
       <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', lineHeight: 1.6, marginBottom: '28px', maxWidth: '520px', margin: '0 auto 28px' }}>
-        This power tool module contains confidential gross revenue analytics, StockMachine cloud mappings, and executive Z-report cashouts reserved exclusively for <strong>{requiredRole === 'ADMIN' ? '👑 Global Owners / Admins' : '🛡️ Shift Managers'}</strong>. Your current session credential (<strong>{currentRole}</strong>) restricts visibility to active register operations.
+        This module contains protected analytics, menu, or cashout actions reserved for <strong>{requiredRole === 'ADMIN' ? '👑 Global Owners / Admins' : '🛡️ Shift Managers'}</strong>. Your current session credential (<strong>{currentRole}</strong>) does not include the required API permission.
       </p>
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', flexWrap: 'wrap' }}>
-        <button onClick={onOverrideRequest} className="btn-pos" style={{ background: '#ff4d4d', color: '#000', fontSize: '0.92rem', padding: '12px 26px' }}>
-          <KeyRound size={18} /> Enter Manager PIN Override →
-        </button>
-        <span style={{ display: 'block', width: '100%', fontSize: '0.82rem', color: '#888', marginTop: '10px' }}>
-          💡 Tip: Use the <strong>Executive Role Switcher</strong> in the top navbar to easily simulate Admin or Manager access!
-        </span>
-      </div>
+      <span style={{ display: 'block', fontSize: '0.82rem', color: '#888' }}>
+        Sign in with an account that has the required server-side permission.
+      </span>
     </div>
   );
 }
@@ -40,63 +53,44 @@ function AuthPortal({ onAuthenticate }) {
   const [tenantType, setTenantType] = useState('SOLO_FOOD_TRUCK');
   
   // Appwrite Cloud Fields
-  const [email, setEmail] = useState('owner@merchantgo.store');
-  const [password, setPassword] = useState('cometmachinery2026!');
-  const [username, setUsername] = useState('Comet Hospitality Operator');
-  const [pin, setPin] = useState('1234');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [pin, setPin] = useState('');
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [cloudSuccess, setCloudSuccess] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
     if (authMethod === 'PIN') {
-      // Local PIN Verification
-      if (pin === '1234') {
-        onAuthenticate({ name: username || 'Owner / Global Admin', role: 'ADMIN', mode: tenantType, avatar: '👑', isCloud: false });
-      } else if (pin === '5678') {
-        onAuthenticate({ name: username || 'Shift Supervisor (Sofia)', role: 'MANAGER', mode: tenantType, avatar: '🛡️', isCloud: false });
-      } else if (pin === '9012') {
-        onAuthenticate({ name: username || 'Express Helper (Marco)', role: 'CASHIER', mode: tenantType, avatar: '💳', isCloud: false });
-      } else {
-        setError('Invalid Staff PIN! Try 1234 (Admin), 5678 (Manager), or 9012 (Helper).');
+      setLoading(true);
+      try {
+        onAuthenticate({ ...(await loginMerchantGoPin(pin)), avatar: '🔐', isCloud: false });
+      } catch (err) {
+        setError(err.message || 'Invalid staff PIN');
+      } finally {
+        setLoading(false);
       }
       return;
     }
 
-    // REAL APPWRITE CLOUD AUTHENTICATION (Project ID: 6a6854dc00209919ea1e)
     setLoading(true);
     try {
       if (mode === 'REGISTER') {
-        await registerAppwriteUser(email, password, username || 'New Workspace Owner');
-        setCloudSuccess(true);
-        onAuthenticate({
-          name: username || 'Verified Cloud Owner',
-          email,
-          role: 'ADMIN',
-          mode: tenantType,
-          avatar: '☁️👑',
-          isCloud: true,
-          notice: `⚡ Real Appwrite account registered & synchronized under Project ID: 6a6854dc00209919ea1e!`
-        });
+        const profile = await registerAppwriteUser(email, password, username || 'New Workspace Owner', tenantType);
+        onAuthenticate({ ...profile, avatar: '☁️👑', isCloud: true });
       } else {
-        await loginAppwriteUser(email, password);
-        onAuthenticate({
-          name: username || 'Verified Cloud User',
-          email,
-          role: 'ADMIN',
-          mode: tenantType,
-          avatar: '☁️👑',
-          isCloud: true,
-          notice: `✔ Authenticated with Appwrite Cloud Session (Project ID: 6a6854dc00209919ea1e)!`
-        });
+        const profile = await loginAppwriteUser(email, password);
+        onAuthenticate({ ...profile, avatar: '☁️', isCloud: true });
       }
     } catch (err) {
       console.error(err);
-      setError(`Appwrite Cloud Error: ${err.message || 'Verification failed. Please verify credentials or switch to Staff PIN Mode.'}`);
+      setError(err.message || (mode === 'REGISTER'
+        ? 'We could not create your MerchantGo account. Check your details and try again.'
+        : 'We could not sign you in. Check your email and password, or use a staff PIN.'));
     } finally {
       setLoading(false);
     }
@@ -116,7 +110,7 @@ function AuthPortal({ onAuthenticate }) {
               MERCHANT<span style={{ color: tenantType === 'SOLO_FOOD_TRUCK' ? '#00ff66' : 'var(--primary-pos)' }}>GO</span>
             </span>
             <span style={{ fontSize: '0.75rem', color: '#00ff66', fontWeight: 700, display: 'block', background: 'rgba(0,255,102,0.12)', padding: '2px 8px', borderRadius: '6px', width: 'fit-content' }}>
-              ● Connected to Appwrite Cloud (6a6854dc00209919ea1e)
+              ● Your point-of-sale workspace
             </span>
           </div>
         </div>
@@ -124,30 +118,30 @@ function AuthPortal({ onAuthenticate }) {
         {/* TAB SWITCHER: SIGN IN vs REGISTER WORKSPACE */}
         <div style={{ display: 'flex', background: 'rgba(0,0,0,0.4)', padding: '5px', borderRadius: '14px', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.06)' }}>
           <button onClick={() => setMode('SIGNIN')} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: mode === 'SIGNIN' ? 'rgba(255,255,255,0.1)' : 'transparent', color: mode === 'SIGNIN' ? '#fff' : '#888', fontWeight: 800, fontSize: '0.92rem', cursor: 'pointer', fontFamily: 'Outfit', transition: 'all 0.2s' }}>
-            🔑 Cloud / Staff Sign In
+            🔑 Sign In
           </button>
-          <button onClick={() => setMode('REGISTER')} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: mode === 'REGISTER' ? (tenantType === 'SOLO_FOOD_TRUCK' ? '#00ff66' : 'var(--primary-pos)') : 'transparent', color: mode === 'REGISTER' ? (tenantType === 'SOLO_FOOD_TRUCK' ? '#000' : '#fff') : '#888', fontWeight: 800, fontSize: '0.92rem', cursor: 'pointer', fontFamily: 'Outfit', transition: 'all 0.2s' }}>
-            📝 Register Cloud Workspace
+          <button onClick={() => { setMode('REGISTER'); setAuthMethod('CLOUD'); }} style={{ flex: 1, padding: '12px', borderRadius: '12px', border: 'none', background: mode === 'REGISTER' ? (tenantType === 'SOLO_FOOD_TRUCK' ? '#00ff66' : 'var(--primary-pos)') : 'transparent', color: mode === 'REGISTER' ? (tenantType === 'SOLO_FOOD_TRUCK' ? '#000' : '#fff') : '#888', fontWeight: 800, fontSize: '0.92rem', cursor: 'pointer', fontFamily: 'Outfit', transition: 'all 0.2s' }}>
+            📝 Create Account
           </button>
         </div>
 
-        {/* AUTH METHOD TOGGLE: APPWRITE CLOUD vs LOCAL STAFF PIN */}
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '24px' }}>
+        {/* AUTH METHOD TOGGLE: OWNER ACCOUNT vs STAFF PIN */}
+        {mode === 'SIGNIN' && <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginBottom: '24px' }}>
           <button 
             type="button" 
             onClick={() => setAuthMethod('CLOUD')} 
             style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700, border: authMethod === 'CLOUD' ? '1px solid #00ff66' : '1px solid var(--border-glass)', background: authMethod === 'CLOUD' ? 'rgba(0,255,102,0.1)' : 'transparent', color: authMethod === 'CLOUD' ? '#00ff66' : '#888', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            <Cloud size={14} /> Appwrite Account Mode (Saves in Console)
+            <Cloud size={14} /> Owner Account
           </button>
           <button 
             type="button" 
             onClick={() => setAuthMethod('PIN')} 
             style={{ padding: '6px 14px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 700, border: authMethod === 'PIN' ? '1px solid var(--primary-pos)' : '1px solid var(--border-glass)', background: authMethod === 'PIN' ? 'rgba(255,107,0,0.1)' : 'transparent', color: authMethod === 'PIN' ? 'var(--primary-pos)' : '#888', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
           >
-            <KeyRound size={14} /> Fast Staff Terminal PIN
+            <KeyRound size={14} /> Staff PIN
           </button>
-        </div>
+        </div>}
 
         {error && (
           <div style={{ backgroundColor: 'rgba(255, 77, 77, 0.2)', border: '1px solid #ff4d4d', padding: '12px', borderRadius: '12px', color: '#ff4d4d', fontSize: '0.88rem', fontWeight: 700, textAlign: 'center', marginBottom: '20px' }}>
@@ -159,26 +153,26 @@ function AuthPortal({ onAuthenticate }) {
           {mode === 'REGISTER' && (
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 800, color: '#ccc', marginBottom: '10px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Select Business Operational Architecture:
+                What type of business are you setting up?
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
                 <div onClick={() => setTenantType('SOLO_FOOD_TRUCK')} style={{ padding: '16px', borderRadius: '16px', cursor: 'pointer', border: tenantType === 'SOLO_FOOD_TRUCK' ? '2px solid #00ff66' : '1px solid rgba(255,255,255,0.08)', background: tenantType === 'SOLO_FOOD_TRUCK' ? 'rgba(0, 255, 102, 0.08)' : 'rgba(255,255,255,0.02)', transition: 'all 0.2s' }}>
                   <span style={{ fontSize: '1.6rem', display: 'block', marginBottom: '6px' }}>🚚</span>
                   <strong style={{ color: '#fff', fontSize: '0.95rem', display: 'block', marginBottom: '4px' }}>Solo Food Truck</strong>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>Express register line & owner tip pooling.</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>A simple owner-operated setup for fast counter service.</span>
                 </div>
                 <div onClick={() => setTenantType('MULTI_STATION_BAR')} style={{ padding: '16px', borderRadius: '16px', cursor: 'pointer', border: tenantType === 'MULTI_STATION_BAR' ? '2px solid var(--primary-pos)' : '1px solid rgba(255,255,255,0.08)', background: tenantType === 'MULTI_STATION_BAR' ? 'rgba(255, 107, 0, 0.08)' : 'rgba(255,255,255,0.02)', transition: 'all 0.2s' }}>
                   <span style={{ fontSize: '1.6rem', display: 'block', marginBottom: '6px' }}>🏢</span>
                   <strong style={{ color: '#fff', fontSize: '0.95rem', display: 'block', marginBottom: '4px' }}>Multi-Station Bar</strong>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>Shared PIN tablets, waiter attribution & table stations.</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>A team setup with shared terminals and staff PINs.</span>
                 </div>
               </div>
             </div>
           )}
 
-          <div style={{ marginBottom: '16px' }}>
+          {mode === 'REGISTER' && <div style={{ marginBottom: '16px' }}>
             <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px' }}>
-              {mode === 'REGISTER' ? 'Establishment Name / Principal Owner' : 'Operator Username / Staff Title'}
+              Business or owner name
             </label>
             <input 
               type="text" 
@@ -186,13 +180,13 @@ function AuthPortal({ onAuthenticate }) {
               onChange={(e) => setUsername(e.target.value)}
               style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border-glass)', background: 'rgba(0,0,0,0.5)', color: '#fff', fontSize: '0.95rem', outline: 'none', fontFamily: 'Inter' }}
             />
-          </div>
+          </div>}
 
           {authMethod === 'CLOUD' ? (
             <div>
               <div style={{ marginBottom: '16px' }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px' }}>
-                  Appwrite Cloud Email Address
+                  Email address
                 </label>
                 <input 
                   type="email" 
@@ -205,7 +199,7 @@ function AuthPortal({ onAuthenticate }) {
               </div>
               <div style={{ marginBottom: '24px' }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px' }}>
-                  Cloud Security Password
+                  Password
                 </label>
                 <input 
                   type="password" 
@@ -220,7 +214,7 @@ function AuthPortal({ onAuthenticate }) {
           ) : (
             <div style={{ marginBottom: '24px' }}>
               <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-muted)', marginBottom: '8px' }}>
-                Secret Staff Terminal PIN Code (1234 = Admin, 5678 = Mgr, 9012 = Cashier)
+                Staff Terminal PIN
               </label>
               <input 
                 type="password" 
@@ -233,39 +227,9 @@ function AuthPortal({ onAuthenticate }) {
           )}
 
           <button type="submit" disabled={loading} className="btn-pos" style={{ width: '100%', justifyContent: 'center', padding: '16px', fontSize: '1.05rem', background: tenantType === 'SOLO_FOOD_TRUCK' ? '#00cc52' : 'var(--primary-pos)', color: tenantType === 'SOLO_FOOD_TRUCK' ? '#000' : '#fff', opacity: loading ? 0.6 : 1 }}>
-            {loading ? '☁️ Synchronizing with Appwrite Cloud...' : (mode === 'REGISTER' ? '🚀 Provision Cloud Workspace & Enter Suite' : '⚡ Authenticate Terminal')}
+            {loading ? 'Please wait...' : (mode === 'REGISTER' ? '🚀 Create My MerchantGo Account' : (authMethod === 'PIN' ? '⚡ Open Staff Terminal' : '⚡ Sign In'))}
           </button>
         </form>
-
-        {/* QUICK DEMO CREDENTIAL OVERRIDES */}
-        <div style={{ marginTop: '28px', paddingTop: '20px', borderTop: '1px solid var(--border-glass)', textAlign: 'center' }}>
-          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 800, display: 'block', marginBottom: '12px', letterSpacing: '0.04em' }}>
-            ⚡ Instant Evaluation Demo Roles (Bypasses Cloud Call for Rapid Testing)
-          </span>
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            <button 
-              type="button"
-              onClick={() => onAuthenticate({ name: 'Comet Global Owner', role: 'ADMIN', mode: tenantType, avatar: '👑', notice: 'Simulated 👑 Owner / Global Admin credentials (PIN 1234)' })}
-              style={{ flex: 1, padding: '10px', borderRadius: '12px', border: '1px solid rgba(255,215,0,0.4)', background: 'rgba(255,215,0,0.08)', color: '#ffd700', fontSize: '0.82rem', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s' }}
-            >
-              👑 Owner / Admin<br/><span style={{ fontSize: '0.7rem', color: '#aaa' }}>PIN: 1234 (Full Access)</span>
-            </button>
-            <button 
-              type="button"
-              onClick={() => onAuthenticate({ name: 'Shift Supervisor (Sofia)', role: 'MANAGER', mode: tenantType, avatar: '🛡️', notice: 'Simulated 🛡️ Shift Manager credentials (PIN 5678)' })}
-              style={{ flex: 1, padding: '10px', borderRadius: '12px', border: '1px solid rgba(0, 180, 255, 0.4)', background: 'rgba(0, 180, 255, 0.08)', color: '#33ccff', fontSize: '0.82rem', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s' }}
-            >
-              🛡️ Shift Manager<br/><span style={{ fontSize: '0.7rem', color: '#aaa' }}>PIN: 5678 (Floor Oversight)</span>
-            </button>
-            <button 
-              type="button"
-              onClick={() => onAuthenticate({ name: 'Express Helper (Marco)', role: 'CASHIER', mode: tenantType, avatar: '💳', notice: 'Simulated 💳 Line Cashier / Helper credentials (PIN 9012)' })}
-              style={{ flex: 1, padding: '10px', borderRadius: '12px', border: '1px solid rgba(0, 255, 102, 0.4)', background: 'rgba(0, 255, 102, 0.08)', color: '#00ff66', fontSize: '0.82rem', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s' }}
-            >
-              💳 Frontline Helper<br/><span style={{ fontSize: '0.7rem', color: '#aaa' }}>PIN: 9012 (Register Only)</span>
-            </button>
-          </div>
-        </div>
 
       </div>
     </div>
@@ -276,30 +240,15 @@ function AuthPortal({ onAuthenticate }) {
 // 3. MAIN ENTERPRISE DASHBOARD & POWER TOOL
 // ==========================================
 export default function App() {
-  const [session, setSession] = useState(null); // null when unauthenticated
+  const [session, setSession] = useState(checkAppwriteSession());
   const [activeTab, setActiveTab] = useState('analytics'); // 'analytics' | 'floor' | 'menu' | 'corte' | 'settings'
   const [corteResult, setCorteResult] = useState(null);
   const [notification, setNotification] = useState(null);
 
-  // --- PHASE 1: STORAGE & CAPACITY STATE ---
-  const [storageProvider, setStorageProvider] = useState('APPWRITE_SAAS'); // 'APPWRITE_SAAS' | 'GOOGLE_CLOUD'
-  const [saasPlan, setSaasPlan] = useState('FREE'); // 'FREE' | 'PRO' | 'ENTERPRISE'
-  const PLAN_LIMITS = { FREE: { menuItems: 25, staff: 5 }, PRO: { menuItems: 100, staff: 25 }, ENTERPRISE: { menuItems: 250, staff: 100 } };
-  
-  const [orders, setOrders] = useState([
-    { id: 'ORD-801', table: 'Express Counter #1', server: 'Lone Owner (Self)', total: 42.50, time: '2 mins ago', status: 'READY_TO_CLOSE', items: ['Gourmet Smash Burger x2', 'Truffle Fries'] },
-    { id: 'ORD-802', table: 'Express Counter #2', server: 'Helper #1 (Marco)', total: 18.50, time: '5 mins ago', status: 'OPEN', items: ['Ribeye Tacos x1', 'Agave Lemonade'] },
-    { id: 'ORD-803', table: 'Table #8 (Patio)', server: 'Waiter PIN #12', total: 125.00, time: '41 mins ago', status: 'READY_TO_CLOSE', items: ['Tomahawk Steak', 'Cabernet Sauvignon Bottle'] }
-  ]);
+  const [orders, setOrders] = useState([]);
 
   // --- PHASE 1: INGREDIENT & MENU DB ---
-  const [menuItems, setMenuItems] = useState([
-    { id: 'm1', name: 'Gourmet Smash Burger', cat: 'Food Truck Specials', price: '$16.50', ing: 'Double Chuck Patty, Brioche, Special Sauce (StockMachine: PATTY_CHUCK_01)', rawIngredients: [] },
-    { id: 'm2', name: 'Ribeye Tacos (3pc)', cat: 'Main Kitchen', price: '$18.50', ing: 'Tortillas, Prime Ribeye, Cilantro, Avocado Salsa', rawIngredients: [] },
-    { id: 'm3', name: 'Agave Craft Lemonade', cat: 'Beverages', price: '$6.50', ing: 'Fresh Lemon Juice, Organic Agave Nectar, Sparkling Water', rawIngredients: [] },
-    { id: 'm4', name: 'Añejo Margarita', cat: 'Bar & Cocktail', price: '$14.00', ing: 'Añejo Tequila, Fresh Lime, Agave Nectar, Salt', rawIngredients: [] },
-    { id: 'm5', name: 'Tomahawk Steak (32oz)', cat: 'Main Kitchen', price: '$85.00', ing: 'Prime Tomahawk, Garlic Butter, Rosemary Herb', rawIngredients: [] },
-  ]);
+  const [menuItems, setMenuItems] = useState([]);
 
   const [ingredients, setIngredients] = useState([
     { id: 'i1', name: 'Onions', stockCode: 'VEG_ONION_01' },
@@ -309,6 +258,53 @@ export default function App() {
   
   const [showIngredientManager, setShowIngredientManager] = useState(false);
   const [editingMenuItemId, setEditingMenuItemId] = useState(null);
+  const [staffCount, setStaffCount] = useState(0);
+  const [branchCount, setBranchCount] = useState(0);
+  const [recentReports, setRecentReports] = useState([]);
+  const [snapshotBusy, setSnapshotBusy] = useState(false);
+  const [googleDrive, setGoogleDrive] = useState({ connected: false, connectedAt: null });
+  const snapshotInput = useRef(null);
+
+  useEffect(() => {
+    if (!session?.token) return;
+    merchantGoRequest('/orders/active')
+      .then(result => setOrders(result.orders.map(order => ({
+        ...order,
+        server: order.waiter,
+        time: 'Active',
+      }))))
+      .catch(error => setNotification(error.message));
+  }, [session?.token]);
+
+  useEffect(() => {
+    if (!session?.token || session.plan !== 'FREE') return;
+    googleDriveStatus()
+      .then(setGoogleDrive)
+      .catch(error => setNotification(error.message));
+  }, [session?.token, session?.plan]);
+
+  useEffect(() => {
+    if (!session?.token) return;
+    listTenantMenuItems()
+      .then(result => setMenuItems((result.items || []).map(item => ({
+        id: item.$id || item.id,
+        name: item.name,
+        cat: item.category || 'General',
+        price: `$${Number(item.price || 0).toFixed(2)}`,
+        ing: item.notes || '',
+        rawIngredients: item.rawIngredients || [],
+      }))))
+      .catch(error => setNotification(error.message));
+    listTenantStaff()
+      .then(result => setStaffCount((result.staff || []).length))
+      .catch(() => setStaffCount(0));
+    listTenantBranches()
+      .then(result => setBranchCount((result.branches || []).length))
+      .catch(() => setBranchCount(0));
+    listTenantReports()
+      .then(result => setRecentReports(result.reports || []))
+      .catch(() => setRecentReports([]));
+  }, [session?.token]);
 
   const topMovers = [
     { name: 'Gourmet Smash Burger', volume: '142 units sold today', revenue: '$2,343.00', trend: '+28% vs last Friday', icon: '🍔' },
@@ -329,6 +325,8 @@ export default function App() {
   }
 
   const operatingMode = session.mode; // 'SOLO_FOOD_TRUCK' | 'MULTI_STATION_BAR'
+  const can = (feature) => session.entitlements?.features?.includes(feature);
+  const limits = session.entitlements?.limits || { menuItems: 25, staff: 1, branches: 1 };
 
   const handleLogout = async () => {
     if (session.isCloud) {
@@ -337,26 +335,182 @@ export default function App() {
     setSession(null);
   };
 
-  const executeCorte = (type) => {
-    const totalRevenue = orders.reduce((sum, o) => sum + o.total, 0) + 4849.00;
-    setCorteResult({
-      type,
-      timestamp: new Date().toLocaleTimeString() + ' • ' + new Date().toLocaleDateString(),
-      total_orders: 84,
-      gross_revenue: session.role === 'ADMIN' ? `$${totalRevenue.toFixed(2)} MXN / USD` : '•••••••• (Owner Protected)',
-      cash_collected: session.role === 'ADMIN' ? `$${(totalRevenue * 0.52).toFixed(2)}` : '••••••••',
-      card_settled: session.role === 'ADMIN' ? `$${(totalRevenue * 0.48).toFixed(2)}` : '••••••••',
-      waiter_tips_pool: operatingMode === 'SOLO_FOOD_TRUCK' ? '$542.00 (100% Retained by Solo Owner & Helpers)' : `$${(totalRevenue * 0.15).toFixed(2)}`,
-      status: 'AUDIT_CLOSED & SYNCHRONIZED WITH APPWRITE PROJECT 6a6854dc00209919ea1e'
-    });
-    setNotification(`⚡ ${type} executed successfully! Z-Report Z-804 archived in Appwrite relational stores.`);
-    setTimeout(() => setNotification(null), 4500);
+  const executeCorte = async (type) => {
+    try {
+      const result = await merchantGoRequest('/orders/corte-de-caja', {
+        method: 'POST',
+        body: JSON.stringify({ type }),
+      });
+      const report = result.z_report_ticket;
+      setCorteResult({
+        type: report.type,
+        timestamp: report.generated_at,
+        total_orders: report.total_orders_closed,
+        gross_revenue: `$${report.gross_revenue.toFixed(2)}`,
+        cash_collected: `$${report.payment_breakdown.cash.toFixed(2)}`,
+        card_settled: `$${report.payment_breakdown.card.toFixed(2)}`,
+        waiter_tips_pool: `$${report.waiter_tips_pool.toFixed(2)}`,
+        status: report.status,
+      });
+      setRecentReports(previous => [{ ...report }, ...previous].slice(0, 20));
+    } catch (error) {
+      setNotification(error.message);
+    }
   };
 
-  const transferOrder = (id) => {
-    setOrders(orders.map(o => o.id === id ? { ...o, server: 'Helper #2 Override (Sofia)' } : o));
-    setNotification(`Order ${id} transferred to Helper Station.`);
-    setTimeout(() => setNotification(null), 3000);
+  const transferOrder = async (id) => {
+    try {
+      await merchantGoRequest(`/orders/${id}/transfer`, {
+        method: 'POST',
+        body: JSON.stringify({ staffName: 'Helper #2 (Sofia)' }),
+      });
+      setOrders(orders.map(o => o.id === id ? { ...o, server: 'Helper #2 (Sofia)' } : o));
+    } catch (error) {
+      setNotification(error.message);
+    }
+  };
+
+  const settleOrder = async (id) => {
+    try {
+      await merchantGoRequest('/orders/settle', {
+        method: 'POST',
+        body: JSON.stringify({ orderId: id, paymentMethod: 'CASH' }),
+      });
+      setOrders(orders.filter(order => order.id !== id));
+      setNotification(`Account ${id} settled by ${session.name}.`);
+    } catch (error) {
+      setNotification(error.message);
+    }
+  };
+
+  const createMenuItem = async () => {
+    const name = prompt('Menu item name');
+    if (!name) return;
+    const category = prompt('Category', 'General');
+    const priceInput = prompt('Price', '0');
+    const price = Number(priceInput || '0');
+    if (!Number.isFinite(price)) {
+      setNotification('Price must be numeric.');
+      return;
+    }
+    try {
+      const result = await createTenantMenuItem({
+        name,
+        category: category || 'General',
+        price,
+      });
+      const item = result.item;
+      setMenuItems([
+        ...menuItems,
+        {
+          id: item.$id || item.id,
+          name: item.name,
+          cat: item.category,
+          price: `$${Number(item.price || 0).toFixed(2)}`,
+          ing: item.notes || '',
+          rawIngredients: item.rawIngredients || [],
+        },
+      ]);
+    } catch (error) {
+      setNotification(error.message);
+    }
+  };
+
+  const downloadSnapshot = async () => {
+    setSnapshotBusy(true);
+    try {
+      const { snapshot } = await exportTenantSnapshot();
+      const url = URL.createObjectURL(new Blob(
+        [JSON.stringify(snapshot, null, 2)],
+        { type: 'application/json' },
+      ));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `merchantgo-catalog-${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      setNotification('Catalog snapshot downloaded. You can save it in your cloud-drive folder.');
+    } catch (error) {
+      setNotification(error.message);
+    } finally {
+      setSnapshotBusy(false);
+    }
+  };
+
+  const restoreSnapshot = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    if (file.size > 500_000) {
+      setNotification('Snapshot exceeds the 500 KB limit.');
+      return;
+    }
+
+    setSnapshotBusy(true);
+    try {
+      const snapshot = JSON.parse(await file.text());
+      const preview = await importTenantSnapshot(snapshot, true);
+      const approved = window.confirm(
+        `${preview.message}\n\n` +
+        `${preview.counts.menuItems} menu items, ${preview.counts.branches} branches, ` +
+        `${preview.counts.staffProfiles} staff profiles.\n\nContinue?`,
+      );
+      if (!approved) return;
+
+      const result = await importTenantSnapshot(snapshot, false);
+      const [menu, staff, branches] = await Promise.all([
+        listTenantMenuItems(),
+        listTenantStaff(),
+        listTenantBranches(),
+      ]);
+      setMenuItems((menu.items || []).map(item => ({
+        id: item.$id || item.id,
+        name: item.name,
+        cat: item.category || 'General',
+        price: `$${Number(item.price || 0).toFixed(2)}`,
+        ing: item.notes || '',
+        rawIngredients: item.rawIngredients || [],
+      })));
+      setStaffCount((staff.staff || []).length);
+      setBranchCount((branches.branches || []).length);
+      setNotification(result.message);
+    } catch (error) {
+      setNotification(error instanceof SyntaxError ? 'Snapshot is not valid JSON.' : error.message);
+    } finally {
+      setSnapshotBusy(false);
+    }
+  };
+
+  const syncGoogleDrive = async (direction) => {
+    setSnapshotBusy(true);
+    try {
+      if (direction === 'push') {
+        const result = await pushCatalogToGoogleDrive();
+        setNotification(result.message);
+      } else {
+        await pullCatalogFromGoogleDrive();
+        const [menu, staff, branches] = await Promise.all([
+          listTenantMenuItems(),
+          listTenantStaff(),
+          listTenantBranches(),
+        ]);
+        setMenuItems((menu.items || []).map(item => ({
+          id: item.$id || item.id,
+          name: item.name,
+          cat: item.category || 'General',
+          price: `$${Number(item.price || 0).toFixed(2)}`,
+          ing: item.notes || '',
+          rawIngredients: item.rawIngredients || [],
+        })));
+        setStaffCount((staff.staff || []).length);
+        setBranchCount((branches.branches || []).length);
+        setNotification('Catalog restored from Google Drive.');
+      }
+    } catch (error) {
+      setNotification(error.message);
+    } finally {
+      setSnapshotBusy(false);
+    }
   };
 
   return (
@@ -392,7 +546,7 @@ export default function App() {
             className={activeTab === 'analytics' ? 'btn-pos' : 'btn-secondary'}
             style={{ padding: '8px 16px', fontSize: '0.88rem', background: activeTab === 'analytics' && operatingMode === 'SOLO_FOOD_TRUCK' ? '#00b368' : '' }}
           >
-            <TrendingUp size={16} /> Home Analytics {session.role === 'CASHIER' && '🔒'}
+            <TrendingUp size={16} /> Home Analytics {!can('VIEW_ANALYTICS') && '🔒'}
           </button>
           <button 
             onClick={() => setActiveTab('floor')}
@@ -406,7 +560,7 @@ export default function App() {
             className={activeTab === 'menu' ? 'btn-pos' : 'btn-secondary'}
             style={{ padding: '8px 16px', fontSize: '0.88rem' }}
           >
-            <Layers size={16} /> Menu Engineering {session.role === 'CASHIER' && '🔒'}
+            <Layers size={16} /> Menu Engineering {!can('MANAGE_MENU') && '🔒'}
           </button>
           <button 
             onClick={() => setActiveTab('corte')}
@@ -420,34 +574,12 @@ export default function App() {
             className={activeTab === 'settings' ? 'btn-pos' : 'btn-secondary'}
             style={{ padding: '8px 16px', fontSize: '0.88rem' }}
           >
-            <Settings size={16} /> Settings & Storage {session.role === 'CASHIER' && '🔒'}
+            <Settings size={16} /> Plan & Capacity {session.role !== 'ADMIN' && '🔒'}
           </button>
         </nav>
 
-        {/* EXECUTIVE IDENTITY & TENANT DEMO SWITCHER */}
+        {/* AUTHENTICATED SESSION */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ display: 'flex', backgroundColor: 'rgba(0,0,0,0.5)', padding: '4px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <span style={{ fontSize: '0.7rem', color: '#777', padding: '6px 10px', fontWeight: 700, alignSelf: 'center' }}>DEMO ROLE:</span>
-            <button
-              onClick={() => { setSession({ ...session, role: 'ADMIN', name: 'Global Owner', avatar: '👑' }); setNotification('Executive Identity toggled to 👑 Owner / Global Admin (PIN 1234)'); setTimeout(() => setNotification(null), 3000); }}
-              style={{ padding: '6px 12px', borderRadius: '8px', border: 'none', background: session.role === 'ADMIN' ? 'rgba(255, 215, 0, 0.2)' : 'transparent', color: session.role === 'ADMIN' ? '#ffd700' : '#888', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer' }}
-            >
-              Admin
-            </button>
-            <button
-              onClick={() => { setSession({ ...session, role: 'MANAGER', name: 'Shift Supervisor', avatar: '🛡️' }); setNotification('Executive Identity toggled to 🛡️ Shift Manager (PIN 5678)'); setTimeout(() => setNotification(null), 3000); }}
-              style={{ padding: '6px 12px', borderRadius: '8px', border: 'none', background: session.role === 'MANAGER' ? 'rgba(0, 180, 255, 0.2)' : 'transparent', color: session.role === 'MANAGER' ? '#33ccff' : '#888', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer' }}
-            >
-              Manager
-            </button>
-            <button
-              onClick={() => { setSession({ ...session, role: 'CASHIER', name: 'Express Helper', avatar: '💳' }); setNotification('Executive Identity toggled to 💳 Line Cashier / Helper (PIN 9012)'); setTimeout(() => setNotification(null), 3000); }}
-              style={{ padding: '6px 12px', borderRadius: '8px', border: 'none', background: session.role === 'CASHIER' ? 'rgba(0, 255, 102, 0.2)' : 'transparent', color: session.role === 'CASHIER' ? '#00ff66' : '#888', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer' }}
-            >
-              Helper
-            </button>
-          </div>
-
           <button onClick={handleLogout} className="btn-secondary" style={{ padding: '8px 14px', fontSize: '0.82rem', borderColor: 'rgba(255, 77, 77, 0.4)', color: '#ff8585' }} title="Lock Terminal & Sign Out">
             <LogOut size={16} /> Lock Terminal
           </button>
@@ -459,18 +591,9 @@ export default function App() {
       <div style={{ backgroundColor: '#07080b', borderBottom: '1px solid var(--border-glass)', padding: '10px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <span>Active Mode: <strong>{operatingMode === 'SOLO_FOOD_TRUCK' ? '🚚 Solo Food Truck & Weekend Helpers' : '🏢 Enterprise Multi-Station Hospitality Suite'}</strong></span>
-          <button 
-            onClick={() => setSession({ ...session, mode: operatingMode === 'SOLO_FOOD_TRUCK' ? 'MULTI_STATION_BAR' : 'SOLO_FOOD_TRUCK' })} 
-            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid var(--border-glass)', color: '#fff', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700 }}
-          >
-            ⇄ Switch Tenant Mode
-          </button>
+          <span>Plan: <strong>{session.plan}</strong></span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span style={{ color: '#00ff66', fontWeight: 700 }}>● Appwrite Project: 6a6854dc00209919ea1e</span>
-          <span>•</span>
-          <span>Connected StockMachine Domain: <strong>stockmachine.online</strong></span>
-        </div>
+        <span style={{ color: '#00ff66', fontWeight: 700 }}>● Authenticated API session</span>
       </div>
 
       {/* NOTIFICATION BANNER */}
@@ -486,8 +609,8 @@ export default function App() {
         {/* VIEW 1: HOME STATISTICS & ANALYTICS POWER TOOL */}
         {activeTab === 'analytics' && (
           <div>
-            {session.role === 'CASHIER' ? (
-              <SecurityShield requiredRole="MANAGER" currentRole={session.role} onOverrideRequest={() => { const p = prompt('Enter Manager or Admin Secret PIN override:'); if(p==='1234'||p==='5678') setSession({...session, role: 'ADMIN'}); else alert('Incorrect clearance PIN!'); }} />
+            {!can('VIEW_ANALYTICS') ? (
+              <SecurityShield requiredRole="MANAGER" currentRole={session.role} />
             ) : (
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '32px' }}>
@@ -497,20 +620,13 @@ export default function App() {
                     </span>
                     <h1 style={{ fontSize: '2.8rem', marginTop: '4px' }}>Daily Shift Statistics & Insights</h1>
                     <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem' }}>
-                      Analyze gross revenue, sales velocity, helper contributions, and StockMachine ingredient depletion.
+                      Review the current MVP analytics dashboard for your authenticated workspace.
                     </p>
                   </div>
 
-                  {session.role === 'ADMIN' && (
-                    <div style={{ display: 'flex', gap: '12px' }}>
-                      <button onClick={() => alert('🔒 Appwrite database snapshot compiled & synchronized with StockMachine cloud archives.')} className="btn-secondary" style={{ fontSize: '0.85rem' }}>
-                        <CheckCircle2 size={16} color="#00ff66" /> Force Appwrite Cloud Backup
-                      </button>
-                      <button onClick={() => alert('💳 Opening Stripe Embedded Checkout modal for adding optional software terminal seats...')} className="btn-pos" style={{ background: '#635bff', fontSize: '0.85rem' }}>
-                        ⚡ Stripe SaaS Plan Manage
-                      </button>
-                    </div>
-                  )}
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                    Plan changes are managed by MerchantGo support during the MVP.
+                  </span>
                 </div>
 
                 {/* TOP METRIC SUMMARY CARDS */}
@@ -527,7 +643,7 @@ export default function App() {
                       {session.role === 'ADMIN' ? '$4,849.00' : '••••••••'}
                     </strong>
                     <span style={{ fontSize: '0.85rem', color: '#ccc' }}>
-                      {session.role === 'ADMIN' ? '52% Cash Collector • 48% Stripe Touch Terminal' : '🔒 Financial figures restricted to Global Admin'}
+                      {session.role === 'ADMIN' ? 'Cash and external card settlement summary' : '🔒 Financial figures restricted to Global Admin'}
                     </span>
                   </div>
 
@@ -555,13 +671,13 @@ export default function App() {
 
                 </div>
 
-                {/* PEAK RUSH HOUR CHART SIMULATION & STOCKMACHINE ALERTS */}
+                {/* MVP ANALYTICS PREVIEW */}
                 <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '26px', marginBottom: '36px' }}>
                   
                   <div className="glass-panel" style={{ padding: '28px' }}>
                     <h3 style={{ fontSize: '1.5rem', marginBottom: '8px', color: '#fff' }}>Peak Sales Velocity & Hourly Rushes</h3>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '24px' }}>
-                      Automated WebSocket tracking reveals customer line congestion peaks during afternoon lunch service.
+                      Sample visualization layout for a future persisted analytics endpoint.
                     </p>
 
                     <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: '180px', paddingBottom: '10px', borderBottom: '1px solid var(--border-glass)' }}>
@@ -583,28 +699,28 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* STOCKMACHINE CLOUD DEPLETION ALERT PANEL */}
+                  {/* INVENTORY BOUNDARY */}
                   <div className="glass-panel" style={{ padding: '28px', border: '1px solid rgba(255, 77, 77, 0.4)', background: 'linear-gradient(180deg, rgba(255, 77, 77, 0.08) 0%, rgba(12,13,18,0.9) 100%)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#ff4d4d', fontWeight: 800, marginBottom: '14px' }}>
-                      <ShieldAlert size={24} /> StockMachine Cloud Alert
+                      <ShieldAlert size={24} /> Inventory Boundary
                     </div>
-                    <h3 style={{ fontSize: '1.4rem', color: '#fff', marginBottom: '10px' }}>Ingredient Depletion Warning</h3>
+                    <h3 style={{ fontSize: '1.4rem', color: '#fff', marginBottom: '10px' }}>StockMachine remains separate</h3>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '22px', lineHeight: 1.5 }}>
-                      Based on today's Express POS consumption of <strong>142 Smash Burgers</strong>, raw stock levels in your connected StockMachine workspace have dropped below warning safety thresholds.
+                      MerchantGo does not automatically deduct inventory in this MVP. Use StockMachine independently for inventory operations.
                     </p>
 
                     <div style={{ background: 'rgba(0,0,0,0.5)', padding: '16px', borderRadius: '12px', marginBottom: '20px', border: '1px solid rgba(255,255,255,0.06)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                        <span style={{ color: '#ff8585', fontWeight: 700 }}>Chuck Patty (80/20)</span>
-                        <strong style={{ color: '#ff4d4d' }}>22 units left</strong>
+                        <span style={{ color: '#ff8585', fontWeight: 700 }}>Automatic depletion</span>
+                        <strong style={{ color: '#ff4d4d' }}>Not implemented</strong>
                       </div>
                       <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '999px' }}>
-                        <div style={{ width: '18%', height: '100%', background: '#ff4d4d', borderRadius: '999px' }} />
+                        <div style={{ width: '0%', height: '100%', background: '#ff4d4d', borderRadius: '999px' }} />
                       </div>
                     </div>
 
                     <a href="https://stockmachine.online" target="_blank" rel="noreferrer" className="btn-pos" style={{ width: '100%', justifyContent: 'center', background: '#ff4d4d', color: '#000', fontSize: '0.95rem' }}>
-                      Order Replenishment in StockMachine →
+                      Open StockMachine Separately →
                     </a>
                   </div>
 
@@ -648,7 +764,7 @@ export default function App() {
                 </h1>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
                   {operatingMode === 'SOLO_FOOD_TRUCK' 
-                    ? 'All-in-One register view for lone operators. Orders clear instantly upon rapid cash or Stripe contactless settlement.' 
+                    ? 'All-in-One register view for lone operators with authenticated cash or external card settlement.' 
                     : 'Waitstaff orders entered via shared PIN tablets emit instant WebSocket events directly to this Manager & Cashier terminal.'}
                 </p>
               </div>
@@ -693,10 +809,10 @@ export default function App() {
                     </div>
                     
                     <div style={{ display: 'flex', gap: '10px' }}>
-                      <button onClick={() => transferOrder(o.id)} className="btn-secondary" style={{ flex: 1, justifyContent: 'center', fontSize: '0.8rem', padding: '10px' }}>
+                      <button disabled={!can('TRANSFER_ORDER')} onClick={() => transferOrder(o.id)} className="btn-secondary" style={{ flex: 1, justifyContent: 'center', fontSize: '0.8rem', padding: '10px', opacity: can('TRANSFER_ORDER') ? 1 : 0.5 }}>
                         {operatingMode === 'SOLO_FOOD_TRUCK' ? '👤 Reassign Helper' : 'Transfer Table'}
                       </button>
-                      <button onClick={() => { setNotification(`Account ${o.id} settled cleanly by ${session.name}! Cart wiped for next customer.`); setOrders(orders.filter(x => x.id !== o.id)); }} className="btn-pos" style={{ flex: 1.2, justifyContent: 'center', fontSize: '0.85rem', padding: '10px', background: '#00cc52', color: '#000' }}>
+                      <button disabled={!can('SETTLE_ORDER')} onClick={() => settleOrder(o.id)} className="btn-pos" style={{ flex: 1.2, justifyContent: 'center', fontSize: '0.85rem', padding: '10px', background: '#00cc52', color: '#000', opacity: can('SETTLE_ORDER') ? 1 : 0.5 }}>
                         ⚡ Rapid Settle ($) →
                       </button>
                     </div>
@@ -710,15 +826,15 @@ export default function App() {
         {/* VIEW 3: MENU & INGREDIENT ENGINEERING */}
         {activeTab === 'menu' && (
           <div>
-            {session.role === 'CASHIER' ? (
-              <SecurityShield requiredRole="MANAGER" currentRole={session.role} onOverrideRequest={() => { const p = prompt('Enter Manager or Admin Secret PIN override:'); if(p==='1234'||p==='5678') setSession({...session, role: 'MANAGER'}); else alert('Incorrect clearance PIN!'); }} />
+            {!can('MANAGE_MENU') ? (
+              <SecurityShield requiredRole="MANAGER" currentRole={session.role} />
             ) : (
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
                   <div>
                     <h1 style={{ fontSize: '2.4rem', marginBottom: '6px' }}>Menu & Ingredient Mapping</h1>
                     <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-                      Manage item pricing and map raw ingredient components for automated consumption deductions in <code>stockmachine.online</code>.
+                      Manage the current client-side menu draft. Automatic StockMachine consumption is not implemented in this MVP.
                     </p>
                   </div>
                   {session.role === 'ADMIN' && (
@@ -726,7 +842,7 @@ export default function App() {
                       <button onClick={() => setShowIngredientManager(true)} className="btn-secondary" style={{ gap: '6px', padding: '8px 16px' }}>
                         <Database size={16} /> Manage Ingredients
                       </button>
-                      <button onClick={() => alert('Opening Menu Item Creation Workshop...')} className="btn-pos" style={{ gap: '6px' }}>
+                      <button onClick={createMenuItem} className="btn-pos" style={{ gap: '6px' }}>
                         + Create Menu Item
                       </button>
                     </div>
@@ -740,7 +856,7 @@ export default function App() {
                         <th style={{ padding: '14px 12px' }}>Menu Item Title</th>
                         <th style={{ padding: '14px 12px' }}>Category</th>
                         <th style={{ padding: '14px 12px' }}>Base Price</th>
-                        <th style={{ padding: '14px 12px' }}>Mapped Ingredients & StockMachine Tags</th>
+                        <th style={{ padding: '14px 12px' }}>Ingredient Notes</th>
                         <th style={{ padding: '14px 12px', textAlign: 'right' }}>Actions</th>
                       </tr>
                     </thead>
@@ -842,27 +958,28 @@ export default function App() {
               </span>
               <h1 style={{ fontSize: '2.8rem', marginBottom: '10px' }}>El Corte de Caja (Z-Report)</h1>
               <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', maxWidth: '660px', margin: '0 auto' }}>
-                Execute full shift settlements or individual station cashouts. Generates audit-grade financial breakdowns and syncs closed revenue with Appwrite Cloud (Project 6a6854dc00209919ea1e) and StockMachine databases.
+                Execute only the cashout operations allowed by your authenticated role and subscription plan.
               </p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px', marginBottom: '36px' }}>
-              <div className="glass-panel" style={{ borderTop: '3px solid #ff6b00', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', opacity: session.role === 'CASHIER' ? 0.5 : 1 }}>
+              <div className="glass-panel" style={{ borderTop: '3px solid #ff6b00', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', opacity: can('GENERAL_CASHOUT') ? 1 : 0.5 }}>
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                     <h3 style={{ fontSize: '1.4rem', color: '#fff' }}>General Cashout ("Corte General")</h3>
-                    {session.role === 'CASHIER' && <span style={{ fontSize: '0.75rem', color: '#ff4d4d', fontWeight: 800 }}>🔒 ADMIN ONLY</span>}
+                    {!can('GENERAL_CASHOUT') && <span style={{ fontSize: '0.75rem', color: '#ff4d4d', fontWeight: 800 }}>🔒 ENTERPRISE ADMIN ONLY</span>}
                   </div>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '22px', lineHeight: 1.5 }}>
                     Closes out the entire truck or bar shift across all active operators. Locks active cash drawers and compiles full payment method analytics.
                   </p>
                 </div>
                 <button 
-                  onClick={() => session.role !== 'CASHIER' ? executeCorte('General Shift Cashout (Z-Report)') : alert('Permission Denied! Corte General is restricted to Owner/Managers.')} 
+                  onClick={() => executeCorte('GENERAL')}
+                  disabled={!can('GENERAL_CASHOUT')}
                   className="btn-pos" 
-                  style={{ width: '100%', justifyContent: 'center', padding: '14px', fontSize: '1rem', background: session.role === 'CASHIER' ? '#555' : 'var(--primary-pos)', cursor: session.role === 'CASHIER' ? 'not-allowed' : 'pointer' }}
+                  style={{ width: '100%', justifyContent: 'center', padding: '14px', fontSize: '1rem', background: can('GENERAL_CASHOUT') ? 'var(--primary-pos)' : '#555', cursor: can('GENERAL_CASHOUT') ? 'pointer' : 'not-allowed' }}
                 >
-                  {session.role === 'CASHIER' ? '🔒 Restricted to Owner / Manager' : 'Execute General Corte →'}
+                  {can('GENERAL_CASHOUT') ? 'Execute General Corte →' : '🔒 Enterprise Admin Required'}
                 </button>
               </div>
 
@@ -877,7 +994,7 @@ export default function App() {
                       : 'Tailored for servers or bartenders concluding their shift early. Reconciles only their assigned PIN accounts.'}
                   </p>
                 </div>
-                <button onClick={() => executeCorte(`Individual Station Reconcile (${session.name})`)} className="btn-pos" style={{ width: '100%', justifyContent: 'center', padding: '14px', fontSize: '1rem', backgroundColor: '#00b368', color: '#000' }}>
+                <button onClick={() => executeCorte('INDIVIDUAL')} disabled={!can('INDIVIDUAL_CASHOUT')} className="btn-pos" style={{ width: '100%', justifyContent: 'center', padding: '14px', fontSize: '1rem', backgroundColor: '#00b368', color: '#000' }}>
                   Reconcile {session.role === 'CASHIER' ? 'My Personal Drawer' : 'Helper Station'} →
                 </button>
               </div>
@@ -911,9 +1028,14 @@ export default function App() {
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', fontSize: '0.9rem', color: '#ccc', padding: '12px 16px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px' }}>
                   <span>Cash Collector Drawer: <strong>{corteResult.cash_collected}</strong></span>
-                  <span>Stripe Card Settlements: <strong>{corteResult.card_settled}</strong></span>
+                  <span>External Card Settlements: <strong>{corteResult.card_settled}</strong></span>
                   <span style={{ color: '#00ff66', fontWeight: 700 }}>● {corteResult.status}</span>
                 </div>
+              </div>
+            )}
+            {recentReports.length > 0 && (
+              <div style={{ marginTop: '24px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                Recent durable reports stored: <strong>{recentReports.length}</strong>
               </div>
             )}
 
@@ -922,77 +1044,94 @@ export default function App() {
         {/* VIEW 5: SETTINGS & STORAGE CAPACITY */}
         {activeTab === 'settings' && (
           <div>
-            {session.role === 'CASHIER' ? (
-              <SecurityShield requiredRole="MANAGER" currentRole={session.role} onOverrideRequest={() => { const p = prompt('Enter Manager or Admin Secret PIN override:'); if(p==='1234'||p==='5678') setSession({...session, role: 'MANAGER'}); else alert('Incorrect clearance PIN!'); }} />
+            {session.role !== 'ADMIN' ? (
+              <SecurityShield requiredRole="ADMIN" currentRole={session.role} />
             ) : (
               <div>
                 <div style={{ marginBottom: '28px' }}>
-                  <h1 style={{ fontSize: '2.4rem', marginBottom: '6px' }}>Settings & Storage Architecture</h1>
+                  <h1 style={{ fontSize: '2.4rem', marginBottom: '6px' }}>Plan & Capacity</h1>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-                    Configure your backend synchronization provider and monitor your current SaaS capacity consumption.
+                    Plan limits are assigned by the MerchantGo backend and cannot be bypassed from a client.
                   </p>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
                   
-                  {/* Provider Selection */}
                   <div className="glass-panel">
                     <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2rem', marginBottom: '16px', color: '#fff' }}>
-                      <Database size={20} color="var(--primary-pos)" /> Backend Sync Provider
+                      <Database size={20} color="var(--primary-pos)" /> Active Subscription
                     </h3>
-                    <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
-                      Select whether to securely sync data to the Appwrite Cloud (bound by your SaaS plan limits) or bypass limits by bringing your own Google Cloud Storage JSON bridge.
+                    <strong style={{ color: '#fff', fontSize: '1.5rem' }}>{session.plan}</strong>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+                      Appwrite validates identity; your VPS SQLite database stores MerchantGo data.
                     </p>
-                    
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', border: storageProvider === 'APPWRITE_SAAS' ? '1px solid var(--primary-pos)' : '1px solid var(--border-glass)', borderRadius: '12px', cursor: 'pointer', background: storageProvider === 'APPWRITE_SAAS' ? 'rgba(255, 107, 0, 0.05)' : 'rgba(0,0,0,0.3)' }}>
-                        <input type="radio" name="storage" value="APPWRITE_SAAS" checked={storageProvider === 'APPWRITE_SAAS'} onChange={() => setStorageProvider('APPWRITE_SAAS')} />
-                        <div>
-                          <span style={{ display: 'block', fontWeight: 600, color: '#fff' }}>Appwrite Cloud Server</span>
-                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Bound to MerchantGo SaaS Limits</span>
-                        </div>
-                      </label>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '16px', border: storageProvider === 'GOOGLE_CLOUD' ? '1px solid #00ff66' : '1px solid var(--border-glass)', borderRadius: '12px', cursor: 'pointer', background: storageProvider === 'GOOGLE_CLOUD' ? 'rgba(0, 255, 102, 0.05)' : 'rgba(0,0,0,0.3)' }}>
-                        <input type="radio" name="storage" value="GOOGLE_CLOUD" checked={storageProvider === 'GOOGLE_CLOUD'} onChange={() => setStorageProvider('GOOGLE_CLOUD')} />
-                        <div>
-                          <span style={{ display: 'block', fontWeight: 600, color: '#fff' }}>Google Cloud Storage (BYOS)</span>
-                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Unlimited Enterprise Bypass</span>
-                        </div>
-                      </label>
-                    </div>
-
-                    <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--border-glass)' }}>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginBottom: '8px' }}>Active SaaS Plan Simulation:</span>
-                      <select value={saasPlan} onChange={(e) => setSaasPlan(e.target.value)} style={{ background: '#000', color: '#fff', border: '1px solid var(--border-glass)', padding: '8px', borderRadius: '8px', width: '100%' }}>
-                        <option value="FREE">Free Tier (25 Items)</option>
-                        <option value="PRO">Pro Tier (100 Items)</option>
-                        <option value="ENTERPRISE">Enterprise Tier (250 Items)</option>
-                      </select>
-                    </div>
                   </div>
 
-                  {/* Capacity Indicators */}
+                  <div className="glass-panel">
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2rem', marginBottom: '12px', color: '#fff' }}>
+                      <Cloud size={20} color="#38bdf8" /> Portable Catalog Snapshot
+                    </h3>
+                    <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '18px' }}>
+                      Export menu items, branches, and staff display profiles as JSON. Save the file in Dropbox, Google Drive, or OneDrive yourself. Orders, cashouts, credentials, and telemetry are never included.
+                    </p>
+                    <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                      <button className="btn-pos" onClick={downloadSnapshot} disabled={snapshotBusy}>
+                        <Download size={16} /> Export snapshot
+                      </button>
+                      <button className="btn-secondary" onClick={() => snapshotInput.current?.click()} disabled={snapshotBusy}>
+                        <Upload size={16} /> Validate & import
+                      </button>
+                      <input
+                        ref={snapshotInput}
+                        type="file"
+                        accept="application/json,.json"
+                        onChange={restoreSnapshot}
+                        style={{ display: 'none' }}
+                      />
+                    </div>
+                    <p style={{ fontSize: '0.75rem', color: '#ffb800', marginTop: '14px' }}>
+                      Import replaces these catalog records only after a validation preview and confirmation.
+                    </p>
+                    {session.plan === 'FREE' && (
+                      <div style={{ borderTop: '1px solid var(--border-glass)', marginTop: '18px', paddingTop: '18px' }}>
+                        <strong style={{ display: 'block', color: googleDrive.connected ? '#00ff66' : '#fff', marginBottom: '8px' }}>
+                          Google Drive: {googleDrive.connected ? 'Connected' : 'Not connected'}
+                        </strong>
+                        <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '12px' }}>
+                          Free catalog data stays on this device. Connect Drive to move the same catalog between web, mobile, and desktop clients.
+                        </p>
+                        {!googleDrive.connected ? (
+                          <button className="btn-pos" onClick={connectGoogleDrive} disabled={snapshotBusy}>
+                            <Cloud size={16} /> Connect Google Drive
+                          </button>
+                        ) : (
+                          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                            <button className="btn-pos" onClick={() => syncGoogleDrive('push')} disabled={snapshotBusy}>
+                              <Upload size={16} /> Sync this device
+                            </button>
+                            <button className="btn-secondary" onClick={() => syncGoogleDrive('pull')} disabled={snapshotBusy}>
+                              <Download size={16} /> Restore from Drive
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                   <div className="glass-panel">
                     <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2rem', marginBottom: '16px', color: '#fff' }}>
                       <Activity size={20} color="var(--primary-pos)" /> Capacity Quotas
                     </h3>
                     
-                    {storageProvider === 'GOOGLE_CLOUD' ? (
-                      <div style={{ background: 'rgba(0, 255, 102, 0.08)', border: '1px solid rgba(0,255,102,0.3)', padding: '32px 20px', borderRadius: '12px', textAlign: 'center' }}>
-                        <Cloud size={48} color="#00ff66" style={{ margin: '0 auto 16px' }} />
-                        <h4 style={{ color: '#00ff66', fontSize: '1.2rem', marginBottom: '8px' }}>Unlimited Cloud Bypass Active</h4>
-                        <p style={{ color: '#999', fontSize: '0.9rem' }}>You are syncing data through your personal Google Cloud architecture. SaaS Plan database restrictions have been lifted.</p>
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                         {/* Menu Capacity Bar */}
                         <div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
                             <span style={{ color: '#fff' }}>Registered Menu Items</span>
-                            <span style={{ fontWeight: 600, color: 'var(--primary-pos)' }}>{menuItems.length} / {PLAN_LIMITS[saasPlan].menuItems}</span>
+                            <span style={{ fontWeight: 600, color: 'var(--primary-pos)' }}>{menuItems.length} / {limits.menuItems}</span>
                           </div>
                           <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '999px', overflow: 'hidden' }}>
-                            <div style={{ width: `${(menuItems.length / PLAN_LIMITS[saasPlan].menuItems) * 100}%`, height: '100%', background: 'var(--primary-pos)', transition: 'width 0.3s ease' }}></div>
+                            <div style={{ width: `${Math.min(100, (menuItems.length / limits.menuItems) * 100)}%`, height: '100%', background: 'var(--primary-pos)', transition: 'width 0.3s ease' }}></div>
                           </div>
                           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '6px' }}>Menu items mapped to raw ingredients.</p>
                         </div>
@@ -1001,15 +1140,24 @@ export default function App() {
                         <div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
                             <span style={{ color: '#fff' }}>Active Staff / Users</span>
-                            <span style={{ fontWeight: 600, color: '#00b368' }}>3 / {PLAN_LIMITS[saasPlan].staff}</span>
+                            <span style={{ fontWeight: 600, color: '#00b368' }}>{staffCount} / {limits.staff}</span>
                           </div>
                           <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '999px', overflow: 'hidden' }}>
-                            <div style={{ width: `${(3 / PLAN_LIMITS[saasPlan].staff) * 100}%`, height: '100%', background: '#00b368', transition: 'width 0.3s ease' }}></div>
+                            <div style={{ width: `${Math.min(100, (staffCount / limits.staff) * 100)}%`, height: '100%', background: '#00b368', transition: 'width 0.3s ease' }}></div>
                           </div>
                           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '6px' }}>Waitstaff and cashiers registered under this tenant.</p>
                         </div>
-                      </div>
-                    )}
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem' }}>
+                            <span style={{ color: '#fff' }}>Active Branches</span>
+                            <span style={{ fontWeight: 600, color: '#38bdf8' }}>{branchCount} / {limits.branches}</span>
+                          </div>
+                          <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '999px', overflow: 'hidden' }}>
+                            <div style={{ width: `${Math.min(100, (branchCount / limits.branches) * 100)}%`, height: '100%', background: '#38bdf8', transition: 'width 0.3s ease' }}></div>
+                          </div>
+                          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '6px' }}>Branches available for this tenant.</p>
+                        </div>
+                    </div>
                   </div>
                   
                 </div>
@@ -1020,7 +1168,7 @@ export default function App() {
       </main>
 
       <footer style={{ borderTop: '1px solid rgba(255,255,255,0.05)', padding: '24px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', backgroundColor: '#070709' }}>
-        © 2026 MerchantGo POS & Cashout Suite • Powered by Comet Pocket Machinery Monorepo • Appwrite Cloud BaaS (6a6854dc00209919ea1e) & Stripe Embedded Checkout Native
+        © 2026 MerchantGo POS & Cashout Suite • Powered by Comet Pocket Machinery • Appwrite identity + VPS data
       </footer>
     </div>
   );

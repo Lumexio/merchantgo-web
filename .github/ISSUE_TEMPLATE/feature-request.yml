@@ -1,0 +1,31 @@
+name: Feature request
+description: Propose a MerchantGo admin web capability.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: User need
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Proposed behavior
+      description: Include routes, roles, tenant/branch scope, API expectations, accessibility, and responsive behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: cascade
+    attributes:
+      label: Cross-repository impact
+      description: Note backend, mobile, desktop, SPA, deployment, and StockMachine integration changes.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+    validations:
+      required: true

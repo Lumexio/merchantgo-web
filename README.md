@@ -1,5 +1,10 @@
 # React + Vite
 
+[![AI Ready](https://img.shields.io/badge/AI--Ready-yes-brightgreen?style=flat)](https://github.com/johnpapa/ai-ready)
+
+MerchantGo's React browser client for administration, reporting, tenant setup,
+and shift cashout.
+
 This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
 
 Currently, two official plugins are available:
@@ -10,6 +15,21 @@ Currently, two official plugins are available:
 ## React Compiler
 
 The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+
+## Validation
+
+```bash
+npm ci
+npm run lint
+npm run build
+```
+
+## Contributing
+
+Create a focused branch and run lint and build before opening a pull request.
+Keep Appwrite secrets out of the browser, treat client role gates as UX only,
+and describe backend contract, tenant/branch, responsive, deployment, and
+cross-client impact.
 
 ## Expanding the Oxlint configuration
 
