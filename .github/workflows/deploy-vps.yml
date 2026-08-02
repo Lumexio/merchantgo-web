@@ -26,8 +26,6 @@ jobs:
         run: npm run build
         env:
           VITE_API_BASE_URL: https://api.merchantgo.store
-          VITE_APPWRITE_PROJECT_ID: "6a6854dc00209919ea1e"
-          VITE_APPWRITE_ENDPOINT: "https://sfo.cloud.appwrite.io/v1"
 
       - name: Prepare Remote Directory on VPS
         uses: appleboy/ssh-action@v1
