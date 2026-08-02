@@ -1,4 +1,4 @@
-import { account } from '../lib/appwrite.js';
+import { account, ID } from '../lib/appwrite.js';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ||
   (window.location.hostname === 'localhost' ? 'http://localhost:3001' : 'https://api.merchantgo.store');
@@ -18,11 +18,7 @@ function saveSession(session) {
 }
 
 export async function registerAppwriteUser(email, password, name, mode) {
-  await request('/auth/register', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, name, mode }),
-  });
+  await account.create(ID.unique(), email, password, name);
   return loginAppwriteUser(email, password, mode);
 }
 
