@@ -23,17 +23,17 @@ export async function registerAppwriteUser(email, password, name, mode) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password, name, mode }),
   });
-  return loginAppwriteUser(email, password);
+  return loginAppwriteUser(email, password, mode);
 }
 
-export async function loginAppwriteUser(email, password) {
+export async function loginAppwriteUser(email, password, mode) {
   // Create session in the browser via Appwrite client SDK (client-only endpoint)
   const appwriteSession = await account.createEmailPasswordSession(email, password);
   // Send the session token to our backend to get the MerchantGo profile + token
   return saveSession(await request('/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ sessionToken: appwriteSession.secret }),
+    body: JSON.stringify({ sessionToken: appwriteSession.secret, mode }),
   }));
 }
 
