@@ -1,3 +1,5 @@
+import { account } from '../lib/appwrite.js';
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL ||
   (window.location.hostname === 'localhost' ? 'http://localhost:3001' : 'https://api.merchantgo.store');
 const SESSION_KEY = 'merchantgo.session';
@@ -24,10 +26,13 @@ export async function registerAppwriteUser(email, password, name, mode) {
 }
 
 export async function loginAppwriteUser(email, password) {
+  // Create session in the browser via Appwrite client SDK (client-only endpoint)
+  const appwriteSession = await account.createEmailPasswordSession(email, password);
+  // Send the session token to our backend to get the MerchantGo profile + token
   return saveSession(await request('/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ sessionToken: appwriteSession.secret }),
   }));
 }
 
