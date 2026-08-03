@@ -73,7 +73,7 @@ export default function MenuView() {
       </div>
 
       {atLimit && isAdmin && (
-        <div style={{ backgroundColor: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.4)', borderRadius: 'var(--radius-md)', padding: '12px 20px', color: 'var(--primary)', marginBottom: '20px', fontSize: '0.85rem' }}>
+        <div style={{ backgroundColor: 'rgba(var(--primary-rgb, 255, 107, 0), 0.15)', border: '1px solid rgba(var(--primary-rgb, 255, 107, 0), 0.4)', borderRadius: 'var(--radius-md)', padding: '12px 20px', color: 'var(--primary)', marginBottom: '20px', fontSize: '0.85rem' }}>
           {t.menu.limitWarning}
         </div>
       )}
@@ -95,7 +95,7 @@ export default function MenuView() {
                 <input
                   key={key} type={type} placeholder={placeholder} value={form[key]} required={required}
                   onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-                  style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-md)', padding: '10px 14px', color: 'var(--text-main)', fontSize: '0.9rem', outline: 'none' }}
+                  style={{ backgroundColor: 'var(--glass-overlay)', border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-md)', padding: '10px 14px', color: 'var(--text-main)', fontSize: '0.9rem', outline: 'none' }}
                 />
               ))}
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
@@ -108,7 +108,7 @@ export default function MenuView() {
               value={form.notes}
               onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
               rows={3}
-              style={{ width: '100%', backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-md)', padding: '10px 14px', color: 'var(--text-main)', fontSize: '0.9rem', resize: 'vertical', outline: 'none', marginBottom: '16px' }}
+              style={{ width: '100%', backgroundColor: 'var(--glass-overlay)', border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-md)', padding: '10px 14px', color: 'var(--text-main)', fontSize: '0.9rem', resize: 'vertical', outline: 'none', marginBottom: '16px' }}
             />
             <div style={{ display: 'flex', gap: '12px' }}>
               <button type="submit" className="btn-pos" disabled={saving}>{saving ? t.common.loading : t.common.save}</button>
@@ -127,7 +127,7 @@ export default function MenuView() {
       ) : (
         <div className="glass-panel" style={{ padding: 0, overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-            <thead style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}>
+            <thead style={{ backgroundColor: 'var(--glass-overlay)' }}>
               <tr style={{ color: 'var(--text-muted)' }}>
                 <th style={{ padding: '14px 20px', textAlign: 'left', fontWeight: 600 }}>Name</th>
                 <th style={{ padding: '14px 20px', textAlign: 'left', fontWeight: 600 }}>Category</th>

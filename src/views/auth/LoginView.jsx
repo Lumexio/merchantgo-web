@@ -44,12 +44,12 @@ export default function LoginView() {
           <input
             type="email" value={email} onChange={e => setEmail(e.target.value)}
             placeholder={t.auth.email} required
-            style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-md)', padding: '12px 16px', color: 'var(--text-main)', fontSize: '0.9rem', outline: 'none' }}
+            style={{ backgroundColor: 'var(--glass-overlay)', border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-md)', padding: '12px 16px', color: 'var(--text-main)', fontSize: '0.9rem', outline: 'none' }}
           />
           <input
             type="password" value={password} onChange={e => setPassword(e.target.value)}
             placeholder={t.auth.password} required
-            style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-md)', padding: '12px 16px', color: 'var(--text-main)', fontSize: '0.9rem', outline: 'none' }}
+            style={{ backgroundColor: 'var(--glass-overlay)', border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-md)', padding: '12px 16px', color: 'var(--text-main)', fontSize: '0.9rem', outline: 'none' }}
           />
           <button type="submit" className="btn-pos" disabled={loading} style={{ width: '100%', justifyContent: 'center' }}>
             {loading ? t.auth.loggingIn : t.auth.signIn}

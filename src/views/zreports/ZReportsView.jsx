@@ -86,7 +86,7 @@ export default function ZReportsView() {
       ) : (
         <div className="glass-panel" style={{ padding: 0, overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-            <thead style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}>
+            <thead style={{ backgroundColor: 'var(--glass-overlay)' }}>
               <tr style={{ color: 'var(--text-muted)' }}>
                 <th style={{ padding: '14px 20px', textAlign: 'left', fontWeight: 600 }}>Generated At</th>
                 <th style={{ padding: '14px 20px', textAlign: 'left', fontWeight: 600 }}>Type</th>

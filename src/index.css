@@ -1,13 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
 
 :root, [data-theme="dark-default"] {
+  --primary-rgb: 255, 107, 0;
+  --nav-bg: var(--nav-bg);
+  --header-bg: var(--header-bg);
+  --glass-overlay: var(--glass-overlay);
+  --glass-overlay-hover: rgba(255, 255, 255, 0.1);
+  --bg-input: var(--bg-input);
   --primary: #ff6b00;
   --primary-hover: #ff852e;
   --accent-error: #ff8585;
   --accent-success: #00ff66;
   --bg-dark: #090a0d;
   --bg-card: rgba(24, 25, 33, 0.75);
-  --border-glass: rgba(255, 255, 255, 0.08);
+  --border-glass: var(--border-glass);
   --text-main: #f2f3f7;
   --text-muted: #9496a3;
   --radius-md: 14px;
@@ -51,14 +57,14 @@ h1, h2, h3, h4, h5 {
 .btn-pos:hover {
   background: var(--primary-hover);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 20px var(--bg-input);
 }
 
 .btn-secondary {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass-overlay);
   color: var(--text-main);
   font-family: 'Outfit', sans-serif;
   font-weight: 600;
@@ -82,6 +88,12 @@ h1, h2, h3, h4, h5 {
 }
 
 [data-theme="light-default"] {
+  --primary-rgb: 255, 107, 0;
+  --nav-bg: rgba(240, 242, 245, 0.97);
+  --header-bg: rgba(255, 255, 255, 0.95);
+  --glass-overlay: rgba(0, 0, 0, 0.05);
+  --glass-overlay-hover: rgba(0, 0, 0, 0.1);
+  --bg-input: rgba(255, 255, 255, 0.6);
   --primary: #ff6b00;
   --primary-hover: #ff852e;
   --accent-error: #ff4d4d;
@@ -94,6 +106,12 @@ h1, h2, h3, h4, h5 {
 }
 
 [data-theme="dark-ocean"] {
+  --primary-rgb: 0, 168, 255;
+  --nav-bg: rgba(9, 20, 40, 0.97);
+  --header-bg: rgba(9, 20, 40, 0.95);
+  --glass-overlay: var(--glass-overlay);
+  --glass-overlay-hover: rgba(255, 255, 255, 0.1);
+  --bg-input: var(--bg-input);
   --primary: #00a8ff;
   --primary-hover: #0097e6;
   --accent-error: #ff8585;
@@ -106,6 +124,12 @@ h1, h2, h3, h4, h5 {
 }
 
 [data-theme="light-warm"] {
+  --primary-rgb: 255, 107, 0;
+  --nav-bg: rgba(255, 253, 245, 0.97);
+  --header-bg: rgba(255, 255, 255, 0.95);
+  --glass-overlay: rgba(0, 0, 0, 0.05);
+  --glass-overlay-hover: rgba(0, 0, 0, 0.1);
+  --bg-input: rgba(255, 255, 255, 0.6);
   --primary: #ff6b00;
   --primary-hover: #e66000;
   --accent-error: #ff4d4d;

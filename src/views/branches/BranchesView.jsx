@@ -75,7 +75,7 @@ export default function BranchesView() {
       </div>
 
       {atLimit && (
-        <div style={{ backgroundColor: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.4)', borderRadius: 'var(--radius-md)', padding: '12px 20px', color: 'var(--primary)', marginBottom: '20px', fontSize: '0.85rem' }}>
+        <div style={{ backgroundColor: 'rgba(var(--primary-rgb, 255, 107, 0), 0.15)', border: '1px solid rgba(var(--primary-rgb, 255, 107, 0), 0.4)', borderRadius: 'var(--radius-md)', padding: '12px 20px', color: 'var(--primary)', marginBottom: '20px', fontSize: '0.85rem' }}>
           Branch limit reached for your plan.
         </div>
       )}
@@ -91,7 +91,7 @@ export default function BranchesView() {
             <input
               type="text" placeholder="Branch name" value={form.name} required
               onChange={e => setForm(current => ({ ...current, name: e.target.value }))}
-              style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-md)', padding: '10px 14px', color: 'var(--text-main)', fontSize: '0.9rem', outline: 'none' }}
+              style={{ backgroundColor: 'var(--glass-overlay)', border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-md)', padding: '10px 14px', color: 'var(--text-main)', fontSize: '0.9rem', outline: 'none' }}
             />
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
               <input type="checkbox" checked={form.active} onChange={e => setForm(current => ({ ...current, active: e.target.checked }))} />
@@ -114,7 +114,7 @@ export default function BranchesView() {
       ) : branches.length > 0 ? (
         <div className="glass-panel" style={{ padding: 0, overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-            <thead style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}>
+            <thead style={{ backgroundColor: 'var(--glass-overlay)' }}>
               <tr style={{ color: 'var(--text-muted)' }}>
                 <th style={{ padding: '14px 20px', textAlign: 'left', fontWeight: 600 }}>Name</th>
                 <th style={{ padding: '14px 20px', textAlign: 'left', fontWeight: 600 }}>Branch ID</th>

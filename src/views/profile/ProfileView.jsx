@@ -114,7 +114,7 @@ export default function ProfileView() {
                   <p style={{ fontWeight: 700, color: isCurrent ? 'var(--primary)' : 'var(--text-main)', marginBottom: '6px' }}>{plan.price}</p>
                   {!isCurrent && (
                     <a href="https://merchantgo.store/pricing" target="_blank" rel="noopener noreferrer"
-                      style={{ fontSize: '0.8rem', color: 'var(--primary)', textDecoration: 'none', border: '1px solid rgba(255,107,0,0.4)', borderRadius: '8px', padding: '4px 10px' }}>
+                      style={{ fontSize: '0.8rem', color: 'var(--primary)', textDecoration: 'none', border: '1px solid rgba(var(--primary-rgb, 255, 107, 0), 0.4)', borderRadius: '8px', padding: '4px 10px' }}>
                       {t.profile.upgradeCta}
                     </a>
                   )}

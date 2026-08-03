@@ -251,7 +251,7 @@ export default function SettingsView() {
                     <select
                       value={resolutions[conflict.key] || ''}
                       onChange={(event) => setResolutions((current) => ({ ...current, [conflict.key]: event.target.value }))}
-                      style={{ minWidth: '180px', padding: '8px 10px', borderRadius: '10px', border: '1px solid var(--border-glass)', backgroundColor: 'rgba(255,255,255,0.05)', color: 'var(--text-main)' }}
+                      style={{ minWidth: '180px', padding: '8px 10px', borderRadius: '10px', border: '1px solid var(--border-glass)', backgroundColor: 'var(--glass-overlay)', color: 'var(--text-main)' }}
                     >
                       <option value="">{t.settings.selectResolution}</option>
                       {conflict.allowedResolutions.includes('keep_current') && <option value="keep_current">{t.settings.keepCurrent}</option>}

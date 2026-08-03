@@ -33,7 +33,7 @@ export default function HistoryView() {
           <label style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{t.history.filterLabel}:</label>
           <input
             type="date" value={from} onChange={e => setFrom(e.target.value)}
-            style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-md)', padding: '8px 12px', color: 'var(--text-main)', fontSize: '0.85rem' }}
+            style={{ backgroundColor: 'var(--glass-overlay)', border: '1px solid var(--border-glass)', borderRadius: 'var(--radius-md)', padding: '8px 12px', color: 'var(--text-main)', fontSize: '0.85rem' }}
           />
         </div>
       </div>
@@ -49,7 +49,7 @@ export default function HistoryView() {
       ) : (
         <div className="glass-panel" style={{ padding: 0, overflow: 'hidden' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-            <thead style={{ backgroundColor: 'rgba(255,255,255,0.04)' }}>
+            <thead style={{ backgroundColor: 'var(--glass-overlay)' }}>
               <tr style={{ color: 'var(--text-muted)' }}>
                 <th style={{ padding: '14px 20px', textAlign: 'left', fontWeight: 600 }}>Order</th>
                 <th style={{ padding: '14px 20px', textAlign: 'left', fontWeight: 600 }}>Table</th>

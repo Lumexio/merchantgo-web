@@ -35,7 +35,7 @@ export default function AppBar() {
     padding: '6px 10px',
     borderRadius: '999px',
     border: '1px solid rgba(255,107,0,0.28)',
-    backgroundColor: 'rgba(255,107,0,0.12)',
+    backgroundColor: 'rgba(var(--primary-rgb, 255, 107, 0), 0.15)',
     color: '#ffd2b5',
     fontSize: '0.78rem',
     fontWeight: 700,
@@ -43,7 +43,7 @@ export default function AppBar() {
   };
 
   return (
-    <header style={{ borderBottom: '1px solid var(--border-glass)', padding: '12px 24px', backgroundColor: 'rgba(12,13,18,0.95)', backdropFilter: 'blur(16px)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+    <header style={{ borderBottom: '1px solid var(--border-glass)', padding: '12px 24px', backgroundColor: 'var(--header-bg)', backdropFilter: 'blur(16px)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
       <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
         {session?.name} <span style={{ color: 'var(--primary)', fontWeight: 700 }}>({session?.role})</span>
         {' · '}
@@ -66,7 +66,7 @@ export default function AppBar() {
                 padding: '7px 10px',
                 borderRadius: '10px',
                 border: '1px solid var(--border-glass)',
-                backgroundColor: 'rgba(255,255,255,0.05)',
+                backgroundColor: 'var(--glass-overlay)',
                 color: 'var(--text-main)',
                 fontSize: '0.82rem',
               }}

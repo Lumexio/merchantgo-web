@@ -33,7 +33,7 @@ function PaymentDonut({ label, value, total, stroke, progress }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
       <svg width="88" height="88" viewBox="0 0 88 88" aria-hidden="true">
-        <circle cx="44" cy="44" r={radius} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="10" />
+        <circle cx="44" cy="44" r={radius} fill="none" stroke="var(--border-glass)" strokeWidth="10" />
         <circle
           cx="44"
           cy="44"
@@ -77,7 +77,7 @@ function SalesBars({ title, items, emptyLabel, accent }) {
                 <span style={{ fontWeight: 600 }}>{item.name}</span>
                 <span style={{ color: 'var(--text-muted)' }}>{item.soldQuantity}</span>
               </div>
-              <div style={{ height: '9px', borderRadius: '999px', backgroundColor: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
+              <div style={{ height: '9px', borderRadius: '999px', backgroundColor: 'var(--border-glass)', overflow: 'hidden' }}>
                 <div style={{ width: `${(item.soldQuantity / max) * 100}%`, height: '100%', borderRadius: '999px', background: accent }} />
               </div>
             </div>
@@ -90,7 +90,7 @@ function SalesBars({ title, items, emptyLabel, accent }) {
 
 function DriveAlert({ onConnect, t }) {
   return (
-    <div className="glass-panel" style={{ marginBottom: '24px', borderColor: 'rgba(255,107,0,0.3)', background: 'linear-gradient(135deg, rgba(255,107,0,0.16), rgba(24,25,33,0.82))' }}>
+    <div className="glass-panel" style={{ marginBottom: '24px', borderColor: 'rgba(255,107,0,0.3)', background: 'linear-gradient(135deg, rgba(var(--primary-rgb, 255, 107, 0), 0.15), var(--bg-card))' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
         <div>
           <p style={{ fontFamily: 'Outfit', fontWeight: 700, marginBottom: '6px' }}>{t.dashboard.driveAlertTitle}</p>
