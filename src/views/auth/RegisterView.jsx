@@ -31,13 +31,13 @@ export default function RegisterView() {
       <div className="glass-panel" style={{ width: '100%', maxWidth: '420px', padding: '40px' }}>
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <h1 style={{ fontFamily: 'Outfit', fontSize: '2rem', fontWeight: 900 }}>
-            MERCHANT<span style={{ color: '#ff6b00' }}>GO</span>
+            MERCHANT<span style={{ color: 'var(--primary)' }}>GO</span>
           </h1>
           <p style={{ color: 'var(--text-muted)', marginTop: '8px', fontSize: '0.9rem' }}>{t.auth.register}</p>
         </div>
 
         {error && (
-          <div style={{ backgroundColor: 'rgba(255,77,77,0.15)', border: '1px solid rgba(255,77,77,0.4)', borderRadius: 'var(--radius-md)', padding: '12px', color: '#ff8585', marginBottom: '16px', fontSize: '0.85rem' }}>
+          <div style={{ backgroundColor: 'rgba(var(--accent-error-rgb, 255, 77, 77),0.15)', border: '1px solid rgba(var(--accent-error-rgb, 255, 77, 77),0.4)', borderRadius: 'var(--radius-md)', padding: '12px', color: 'var(--accent-error)', marginBottom: '16px', fontSize: '0.85rem' }}>
             {error}
           </div>
         )}
@@ -47,7 +47,7 @@ export default function RegisterView() {
             {['SOLO_FOOD_TRUCK', 'MULTI_STATION_BAR'].map(m => (
               <button
                 key={m} type="button" onClick={() => setMode(m)}
-                style={{ flex: 1, padding: '10px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-glass)', backgroundColor: mode === m ? 'rgba(255,107,0,0.15)' : 'transparent', color: mode === m ? '#ff6b00' : '#aaa', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem' }}
+                style={{ flex: 1, padding: '10px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-glass)', backgroundColor: mode === m ? 'rgba(255,107,0,0.15)' : 'transparent', color: mode === m ? 'var(--primary)' : 'var(--text-muted)', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem' }}
               >
                 {m === 'SOLO_FOOD_TRUCK' ? t.auth.soloFoodTruck : t.auth.multiStationBar}
               </button>
@@ -75,7 +75,7 @@ export default function RegisterView() {
 
         <p style={{ textAlign: 'center', marginTop: '24px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
           Already have an account?{' '}
-          <Link to="/login" style={{ color: '#ff6b00', textDecoration: 'none', fontWeight: 600 }}>
+          <Link to="/login" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 600 }}>
             {t.auth.signIn}
           </Link>
         </p>

@@ -28,7 +28,7 @@ export default function OrdersView() {
   return (
     <div>
       <h2 style={{ fontFamily: 'Outfit', fontSize: '1.6rem', marginBottom: '24px' }}>{t.orders.title}</h2>
-      {error && <p style={{ color: '#ff8585', marginBottom: '16px' }}>{error}</p>}
+      {error && <p style={{ color: 'var(--accent-error)', marginBottom: '16px' }}>{error}</p>}
       {loading ? (
         <p style={{ color: 'var(--text-muted)' }}>{t.common.loading}</p>
       ) : orders.length === 0 ? (
@@ -50,7 +50,7 @@ export default function OrdersView() {
             <tbody>
               {orders.map((order, i) => (
                 <tr key={order.$id || order.id || i} style={{ borderTop: '1px solid var(--border-glass)' }}>
-                  <td style={{ padding: '14px 20px', fontFamily: 'monospace', color: '#ff6b00', fontSize: '0.8rem' }}>#{(order.$id || order.id || '').slice(-6)}</td>
+                  <td style={{ padding: '14px 20px', fontFamily: 'monospace', color: 'var(--primary)', fontSize: '0.8rem' }}>#{(order.$id || order.id || '').slice(-6)}</td>
                   <td style={{ padding: '14px 20px' }}>{Array.isArray(order.items) ? order.items.map(item => item.name || item).join(', ') : '—'}</td>
                   <td style={{ padding: '14px 20px', color: 'var(--text-muted)' }}>{order.waiter || '—'}</td>
                   <td style={{ padding: '14px 20px', color: 'var(--text-muted)' }}>{order.created_at ? new Date(order.created_at).toLocaleTimeString() : '—'}</td>

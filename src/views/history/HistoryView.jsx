@@ -38,7 +38,7 @@ export default function HistoryView() {
         </div>
       </div>
 
-      {error && <div style={{ backgroundColor: 'rgba(255,77,77,0.15)', border: '1px solid rgba(255,77,77,0.4)', borderRadius: 'var(--radius-md)', padding: '12px 20px', color: '#ff8585', marginBottom: '16px', fontSize: '0.85rem' }}>{error}</div>}
+      {error && <div style={{ backgroundColor: 'rgba(var(--accent-error-rgb, 255, 77, 77),0.15)', border: '1px solid rgba(var(--accent-error-rgb, 255, 77, 77),0.4)', borderRadius: 'var(--radius-md)', padding: '12px 20px', color: 'var(--accent-error)', marginBottom: '16px', fontSize: '0.85rem' }}>{error}</div>}
 
       {loading ? (
         <p style={{ color: 'var(--text-muted)' }}>{t.common.loading}</p>
@@ -63,11 +63,11 @@ export default function HistoryView() {
             <tbody>
               {orders.map((order, i) => (
                 <tr key={order.id || i} style={{ borderTop: '1px solid var(--border-glass)' }}>
-                  <td style={{ padding: '14px 20px', fontFamily: 'monospace', color: '#ff6b00', fontSize: '0.8rem' }}>#{String(order.id || '').slice(-6)}</td>
+                  <td style={{ padding: '14px 20px', fontFamily: 'monospace', color: 'var(--primary)', fontSize: '0.8rem' }}>#{String(order.id || '').slice(-6)}</td>
                   <td style={{ padding: '14px 20px', color: 'var(--text-muted)' }}>{order.table || '—'}</td>
                   <td style={{ padding: '14px 20px' }}>{Array.isArray(order.items) ? order.items.join(', ') : '—'}</td>
                   <td style={{ padding: '14px 20px' }}>
-                    <span style={{ color: order.payment_method === 'CASH' ? '#00ff66' : '#4db8ff', fontWeight: 600, fontSize: '0.8rem' }}>
+                    <span style={{ color: order.payment_method === 'CASH' ? 'var(--accent-success)' : '#4db8ff', fontWeight: 600, fontSize: '0.8rem' }}>
                       {order.payment_method || '—'}
                     </span>
                   </td>

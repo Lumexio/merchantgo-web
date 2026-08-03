@@ -163,7 +163,7 @@ export default function DashboardView() {
       {loading ? (
         <p style={{ color: 'var(--text-muted)' }}>{t.common.loading}</p>
       ) : error ? (
-        <p style={{ color: '#ff8585' }}>{error}</p>
+        <p style={{ color: 'var(--accent-error)' }}>{error}</p>
       ) : (
         <>
           <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginBottom: '24px' }}>
@@ -177,7 +177,7 @@ export default function DashboardView() {
             <div className="glass-panel" style={{ minWidth: '260px', flex: '0 0 280px' }}>
               <h3 style={{ fontFamily: 'Outfit', marginBottom: '18px', fontSize: '1rem' }}>{t.dashboard.salesMix}</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <PaymentDonut label={t.dashboard.cash} value={cash} total={paymentTotal} stroke="#ff6b00" progress={paymentTotal > 0 ? cash / paymentTotal : 0} />
+                <PaymentDonut label={t.dashboard.cash} value={cash} total={paymentTotal} stroke="var(--primary)" progress={paymentTotal > 0 ? cash / paymentTotal : 0} />
                 <PaymentDonut label={t.dashboard.card} value={card} total={paymentTotal} stroke="#5aa9ff" progress={paymentTotal > 0 ? card / paymentTotal : 0} />
               </div>
             </div>
@@ -185,7 +185,7 @@ export default function DashboardView() {
               title={t.dashboard.mostSold}
               items={dashboard?.mostSoldItems || []}
               emptyLabel={t.dashboard.noSalesYet}
-              accent="linear-gradient(90deg, #ff6b00, #ff9d57)"
+              accent="linear-gradient(90deg, var(--primary), #ff9d57)"
             />
             <SalesBars
               title={t.dashboard.leastSold}
@@ -211,7 +211,7 @@ export default function DashboardView() {
                   {dashboard.recentReports.map((report, index) => (
                     <tr key={report.$id || `${report.generated_at || 'report'}-${index}`} style={{ borderTop: '1px solid var(--border-glass)' }}>
                       <td style={{ padding: '10px 0' }}>{report.generated_at ? new Date(report.generated_at).toLocaleString() : '—'}</td>
-                      <td style={{ padding: '10px 0', color: '#ff6b00' }}>{report.type || 'Z'}</td>
+                      <td style={{ padding: '10px 0', color: 'var(--primary)' }}>{report.type || 'Z'}</td>
                       <td style={{ padding: '10px 0', textAlign: 'center' }}>{report.total_orders_closed ?? '—'}</td>
                       <td style={{ padding: '10px 0', textAlign: 'right', fontWeight: 700 }}>{report.gross_revenue != null ? formatCurrency(report.gross_revenue) : '—'}</td>
                     </tr>

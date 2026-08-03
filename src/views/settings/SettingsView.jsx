@@ -133,7 +133,7 @@ export default function SettingsView() {
 
   const sectionStyle = { marginBottom: '32px' };
   const labelStyle = { color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' };
-  const statusColor = (message) => (message.startsWith('Error') ? '#ff8585' : '#00ff66');
+  const statusColor = (message) => (message.startsWith('Error') ? 'var(--accent-error)' : 'var(--accent-success)');
 
   return (
     <div style={{ maxWidth: '780px' }}>

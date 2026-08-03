@@ -75,7 +75,7 @@ export default function BranchesView() {
       </div>
 
       {atLimit && (
-        <div style={{ backgroundColor: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.4)', borderRadius: 'var(--radius-md)', padding: '12px 20px', color: '#ff6b00', marginBottom: '20px', fontSize: '0.85rem' }}>
+        <div style={{ backgroundColor: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.4)', borderRadius: 'var(--radius-md)', padding: '12px 20px', color: 'var(--primary)', marginBottom: '20px', fontSize: '0.85rem' }}>
           Branch limit reached for your plan.
         </div>
       )}
@@ -84,9 +84,9 @@ export default function BranchesView() {
         <div className="glass-panel" style={{ marginBottom: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h3 style={{ fontFamily: 'Outfit' }}>{editId ? 'Edit Branch' : 'Add Branch'}</h3>
-            <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer' }}><X size={20} /></button>
+            <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
           </div>
-          {error && <p style={{ color: '#ff8585', fontSize: '0.85rem', marginBottom: '12px' }}>{error}</p>}
+          {error && <p style={{ color: 'var(--accent-error)', fontSize: '0.85rem', marginBottom: '12px' }}>{error}</p>}
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <input
               type="text" placeholder="Branch name" value={form.name} required
@@ -128,7 +128,7 @@ export default function BranchesView() {
                   <td style={{ padding: '14px 20px', fontWeight: 600 }}>{branch.name}</td>
                   <td style={{ padding: '14px 20px', fontFamily: 'monospace', color: 'var(--text-muted)', fontSize: '0.8rem' }}>{branch.$id || branch.id || branch.branch_id}</td>
                   <td style={{ padding: '14px 20px', textAlign: 'center' }}>
-                    <span style={{ color: branch.active !== false ? '#00ff66' : '#ff8585', fontWeight: 600, fontSize: '0.8rem' }}>
+                    <span style={{ color: branch.active !== false ? 'var(--accent-success)' : 'var(--accent-error)', fontWeight: 600, fontSize: '0.8rem' }}>
                       {branch.active !== false ? 'Active' : 'Inactive'}
                     </span>
                   </td>
@@ -144,7 +144,7 @@ export default function BranchesView() {
         </div>
       ) : null}
       {error && !loading && branches.length === 0 && (
-        <div className="glass-panel" style={{ textAlign: 'center', padding: '48px', color: '#ff8585' }}>
+        <div className="glass-panel" style={{ textAlign: 'center', padding: '48px', color: 'var(--accent-error)' }}>
           {error}
         </div>
       )}

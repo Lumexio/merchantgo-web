@@ -19,8 +19,8 @@ export default function NavDrawer() {
   return (
     <nav style={{ width: '220px', minHeight: '100vh', borderRight: '1px solid var(--border-glass)', backgroundColor: 'rgba(12,13,18,0.97)', padding: '24px 0', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '0 20px 24px', borderBottom: '1px solid var(--border-glass)', marginBottom: '16px' }}>
-        <span style={{ fontSize: '1.4rem', fontWeight: 900, fontFamily: 'Outfit', color: '#fff' }}>
-          MERCHANT<span style={{ color: '#ff6b00' }}>GO</span>
+        <span style={{ fontSize: '1.4rem', fontWeight: 900, fontFamily: 'Outfit', color: 'var(--text-main)' }}>
+          MERCHANT<span style={{ color: 'var(--primary)' }}>GO</span>
         </span>
       </div>
       {NAV.map(({ to, icon: Icon, key }) => (
@@ -30,9 +30,9 @@ export default function NavDrawer() {
           style={({ isActive }) => ({
             display: 'flex', alignItems: 'center', gap: '12px',
             padding: '12px 20px', textDecoration: 'none',
-            color: isActive ? '#ff6b00' : '#aaa',
+            color: isActive ? 'var(--primary)' : 'var(--text-muted)',
             backgroundColor: isActive ? 'rgba(255,107,0,0.1)' : 'transparent',
-            borderLeft: isActive ? '3px solid #ff6b00' : '3px solid transparent',
+            borderLeft: isActive ? '3px solid var(--primary)' : '3px solid transparent',
             fontWeight: isActive ? 700 : 500, fontSize: '0.9rem',
             transition: 'all 0.15s',
           })}

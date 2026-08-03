@@ -45,9 +45,9 @@ export default function AppBar() {
   return (
     <header style={{ borderBottom: '1px solid var(--border-glass)', padding: '12px 24px', backgroundColor: 'rgba(12,13,18,0.95)', backdropFilter: 'blur(16px)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
       <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-        {session?.name} <span style={{ color: '#ff6b00', fontWeight: 700 }}>({session?.role})</span>
+        {session?.name} <span style={{ color: 'var(--primary)', fontWeight: 700 }}>({session?.role})</span>
         {' · '}
-        <span style={{ color: '#888' }}>Plan: <strong style={{ color: '#fff' }}>{session?.plan}</strong></span>
+        <span style={{ color: 'var(--text-muted)' }}>Plan: <strong style={{ color: 'var(--text-main)' }}>{session?.plan}</strong></span>
       </span>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         {!session?.session_temporary && tenantLabel && !showTenantSelect && (
@@ -79,7 +79,7 @@ export default function AppBar() {
             </select>
           </label>
         )}
-        <button onClick={handleLogout} className="btn-secondary" style={{ padding: '7px 14px', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '6px', borderColor: 'rgba(255,77,77,0.4)', color: '#ff8585' }}>
+        <button onClick={handleLogout} className="btn-secondary" style={{ padding: '7px 14px', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '6px', borderColor: 'rgba(var(--accent-error-rgb, 255, 77, 77),0.4)', color: 'var(--accent-error)' }}>
           <LogOut size={15} /> {t.common.logout}
         </button>
       </div>

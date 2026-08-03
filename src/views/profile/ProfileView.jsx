@@ -66,7 +66,7 @@ export default function ProfileView() {
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: 'var(--text-muted)' }}>Role</span>
-            <span style={{ color: '#ff6b00', fontWeight: 700 }}>{session?.role || '—'}</span>
+            <span style={{ color: 'var(--primary)', fontWeight: 700 }}>{session?.role || '—'}</span>
           </div>
         </div>
       </div>
@@ -76,7 +76,7 @@ export default function ProfileView() {
           <h3 style={{ fontFamily: 'Outfit', fontSize: '1rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{t.profile.planLimits}</h3>
           <PlanBadge plan={session?.plan || 'FREE'} />
         </div>
-        {countError && <p style={{ color: '#ff8585', fontSize: '0.8rem', marginBottom: '12px' }}>{countError}</p>}
+        {countError && <p style={{ color: 'var(--accent-error)', fontSize: '0.8rem', marginBottom: '12px' }}>{countError}</p>}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.9rem' }}>
           {[
             { label: t.profile.menuItems, current: counts.menuItems, max: limits.menuItems || '—' },
@@ -100,21 +100,21 @@ export default function ProfileView() {
               <div key={plan.code} style={{
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 padding: '16px', borderRadius: 'var(--radius-md)',
-                border: `1px solid ${isCurrent ? '#ff6b00' : 'var(--border-glass)'}`,
+                border: `1px solid ${isCurrent ? 'var(--primary)' : 'var(--border-glass)'}`,
                 backgroundColor: isCurrent ? 'rgba(255,107,0,0.08)' : 'transparent',
               }}>
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
                     <strong style={{ fontSize: '0.95rem' }}>{plan.name}</strong>
-                    {isCurrent && <span style={{ fontSize: '0.75rem', color: '#ff6b00', fontWeight: 700 }}>CURRENT</span>}
+                    {isCurrent && <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 700 }}>CURRENT</span>}
                   </div>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{plan.limits}</p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <p style={{ fontWeight: 700, color: isCurrent ? '#ff6b00' : '#fff', marginBottom: '6px' }}>{plan.price}</p>
+                  <p style={{ fontWeight: 700, color: isCurrent ? 'var(--primary)' : 'var(--text-main)', marginBottom: '6px' }}>{plan.price}</p>
                   {!isCurrent && (
                     <a href="https://merchantgo.store/pricing" target="_blank" rel="noopener noreferrer"
-                      style={{ fontSize: '0.8rem', color: '#ff6b00', textDecoration: 'none', border: '1px solid rgba(255,107,0,0.4)', borderRadius: '8px', padding: '4px 10px' }}>
+                      style={{ fontSize: '0.8rem', color: 'var(--primary)', textDecoration: 'none', border: '1px solid rgba(255,107,0,0.4)', borderRadius: '8px', padding: '4px 10px' }}>
                       {t.profile.upgradeCta}
                     </a>
                   )}

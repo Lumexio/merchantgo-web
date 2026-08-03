@@ -56,20 +56,20 @@ export default function ZReportsView() {
       </div>
 
       {corteError && (
-        <div style={{ backgroundColor: 'rgba(255,77,77,0.15)', border: '1px solid rgba(255,77,77,0.4)', borderRadius: 'var(--radius-md)', padding: '16px', marginBottom: '24px', color: '#ff8585', fontSize: '0.85rem' }}>
+        <div style={{ backgroundColor: 'rgba(var(--accent-error-rgb, 255, 77, 77),0.15)', border: '1px solid rgba(var(--accent-error-rgb, 255, 77, 77),0.4)', borderRadius: 'var(--radius-md)', padding: '16px', marginBottom: '24px', color: 'var(--accent-error)', fontSize: '0.85rem' }}>
           {corteError}
         </div>
       )}
 
       {ticket && (
         <div className="glass-panel" style={{ marginBottom: '24px', border: '1px solid rgba(0,255,102,0.3)' }}>
-          <h3 style={{ fontFamily: 'Outfit', color: '#00ff66', marginBottom: '16px' }}>Z-Report Generated</h3>
+          <h3 style={{ fontFamily: 'Outfit', color: 'var(--accent-success)', marginBottom: '16px' }}>Z-Report Generated</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '0.9rem' }}>
             <div><span style={{ color: 'var(--text-muted)' }}>Type: </span><strong>{ticket.type}</strong></div>
-            <div><span style={{ color: 'var(--text-muted)' }}>Status: </span><strong style={{ color: '#00ff66' }}>{ticket.status}</strong></div>
+            <div><span style={{ color: 'var(--text-muted)' }}>Status: </span><strong style={{ color: 'var(--accent-success)' }}>{ticket.status}</strong></div>
             <div><span style={{ color: 'var(--text-muted)' }}>Orders Closed: </span><strong>{ticket.total_orders_closed}</strong></div>
-            <div><span style={{ color: 'var(--text-muted)' }}>Gross Revenue: </span><strong style={{ color: '#ff6b00' }}>${Number(ticket.gross_revenue || 0).toFixed(2)}</strong></div>
-            <div><span style={{ color: 'var(--text-muted)' }}>Cash: </span><strong style={{ color: '#00ff66' }}>${Number(ticket.payment_breakdown?.cash || 0).toFixed(2)}</strong></div>
+            <div><span style={{ color: 'var(--text-muted)' }}>Gross Revenue: </span><strong style={{ color: 'var(--primary)' }}>${Number(ticket.gross_revenue || 0).toFixed(2)}</strong></div>
+            <div><span style={{ color: 'var(--text-muted)' }}>Cash: </span><strong style={{ color: 'var(--accent-success)' }}>${Number(ticket.payment_breakdown?.cash || 0).toFixed(2)}</strong></div>
             <div><span style={{ color: 'var(--text-muted)' }}>Card: </span><strong style={{ color: '#4db8ff' }}>${Number(ticket.payment_breakdown?.card || 0).toFixed(2)}</strong></div>
             <div><span style={{ color: 'var(--text-muted)' }}>Tips Pool (est.): </span><strong>${Number(ticket.waiter_tips_pool || 0).toFixed(2)}</strong></div>
             <div><span style={{ color: 'var(--text-muted)' }}>Generated: </span><strong>{ticket.generated_at ? new Date(ticket.generated_at).toLocaleString() : '—'}</strong></div>
@@ -100,9 +100,9 @@ export default function ZReportsView() {
               {reports.map((report, i) => (
                 <tr key={report.$id || i} style={{ borderTop: '1px solid var(--border-glass)' }}>
                   <td style={{ padding: '14px 20px' }}>{report.generated_at ? new Date(report.generated_at).toLocaleString() : '—'}</td>
-                  <td style={{ padding: '14px 20px', color: '#ff6b00', fontWeight: 600 }}>{report.type || 'GENERAL'}</td>
+                  <td style={{ padding: '14px 20px', color: 'var(--primary)', fontWeight: 600 }}>{report.type || 'GENERAL'}</td>
                   <td style={{ padding: '14px 20px', textAlign: 'center' }}>{report.total_orders_closed ?? '—'}</td>
-                  <td style={{ padding: '14px 20px', textAlign: 'right', color: '#00ff66' }}>{report.payment_breakdown?.cash != null ? `$${Number(report.payment_breakdown.cash).toFixed(2)}` : '—'}</td>
+                  <td style={{ padding: '14px 20px', textAlign: 'right', color: 'var(--accent-success)' }}>{report.payment_breakdown?.cash != null ? `$${Number(report.payment_breakdown.cash).toFixed(2)}` : '—'}</td>
                   <td style={{ padding: '14px 20px', textAlign: 'right', color: '#4db8ff' }}>{report.payment_breakdown?.card != null ? `$${Number(report.payment_breakdown.card).toFixed(2)}` : '—'}</td>
                   <td style={{ padding: '14px 20px', textAlign: 'right', fontWeight: 700 }}>{report.gross_revenue != null ? `$${Number(report.gross_revenue).toFixed(2)}` : '—'}</td>
                 </tr>

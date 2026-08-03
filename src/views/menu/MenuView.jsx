@@ -73,7 +73,7 @@ export default function MenuView() {
       </div>
 
       {atLimit && isAdmin && (
-        <div style={{ backgroundColor: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.4)', borderRadius: 'var(--radius-md)', padding: '12px 20px', color: '#ff6b00', marginBottom: '20px', fontSize: '0.85rem' }}>
+        <div style={{ backgroundColor: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.4)', borderRadius: 'var(--radius-md)', padding: '12px 20px', color: 'var(--primary)', marginBottom: '20px', fontSize: '0.85rem' }}>
           {t.menu.limitWarning}
         </div>
       )}
@@ -82,9 +82,9 @@ export default function MenuView() {
         <div className="glass-panel" style={{ marginBottom: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
             <h3 style={{ fontFamily: 'Outfit' }}>{editId ? 'Edit Item' : t.menu.addItem}</h3>
-            <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer' }}><X size={20} /></button>
+            <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
           </div>
-          {error && <p style={{ color: '#ff8585', fontSize: '0.85rem', marginBottom: '12px' }}>{error}</p>}
+          {error && <p style={{ color: 'var(--accent-error)', fontSize: '0.85rem', marginBottom: '12px' }}>{error}</p>}
           <form onSubmit={handleSubmit}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
               {[
@@ -144,9 +144,9 @@ export default function MenuView() {
                     {item.notes && <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>{item.notes}</span>}
                   </td>
                   <td style={{ padding: '14px 20px', color: 'var(--text-muted)' }}>{item.category || '—'}</td>
-                  <td style={{ padding: '14px 20px', textAlign: 'right', fontWeight: 700, color: '#ff6b00' }}>${Number(item.price || 0).toFixed(2)}</td>
+                  <td style={{ padding: '14px 20px', textAlign: 'right', fontWeight: 700, color: 'var(--primary)' }}>${Number(item.price || 0).toFixed(2)}</td>
                   <td style={{ padding: '14px 20px', textAlign: 'center' }}>
-                    <span style={{ color: item.active !== false ? '#00ff66' : '#ff8585', fontWeight: 600, fontSize: '0.8rem' }}>
+                    <span style={{ color: item.active !== false ? 'var(--accent-success)' : 'var(--accent-error)', fontWeight: 600, fontSize: '0.8rem' }}>
                       {item.active !== false ? 'Active' : 'Inactive'}
                     </span>
                   </td>

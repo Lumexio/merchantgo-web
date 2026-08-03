@@ -76,7 +76,7 @@ export default function StaffView() {
       </div>
 
       {atLimit && (
-        <div style={{ backgroundColor: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.4)', borderRadius: 'var(--radius-md)', padding: '12px 20px', color: '#ff6b00', marginBottom: '20px', fontSize: '0.85rem' }}>
+        <div style={{ backgroundColor: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.4)', borderRadius: 'var(--radius-md)', padding: '12px 20px', color: 'var(--primary)', marginBottom: '20px', fontSize: '0.85rem' }}>
           {t.staff.limitWarning}
         </div>
       )}
@@ -85,12 +85,12 @@ export default function StaffView() {
         <div className="glass-panel" style={{ marginBottom: '24px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h3 style={{ fontFamily: 'Outfit' }}>{editId ? 'Edit Staff Member' : 'Add Staff Member'}</h3>
-            <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', color: '#aaa', cursor: 'pointer' }}><X size={20} /></button>
+            <button onClick={() => setShowForm(false)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
           </div>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '16px' }}>
             Staff display profiles are used for order attribution and role access. They do not create login accounts.
           </p>
-          {error && <p style={{ color: '#ff8585', fontSize: '0.85rem', marginBottom: '12px' }}>{error}</p>}
+          {error && <p style={{ color: 'var(--accent-error)', fontSize: '0.85rem', marginBottom: '12px' }}>{error}</p>}
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <input
               type="text" placeholder="Full name" value={form.name} required
@@ -135,10 +135,10 @@ export default function StaffView() {
               {staff.map((member, i) => (
                 <tr key={member.id || member.$id || i} style={{ borderTop: '1px solid var(--border-glass)' }}>
                   <td style={{ padding: '14px 20px', fontWeight: 600 }}>{member.name}</td>
-                  <td style={{ padding: '14px 20px', color: '#ff6b00' }}>{member.role}</td>
+                  <td style={{ padding: '14px 20px', color: 'var(--primary)' }}>{member.role}</td>
                   <td style={{ padding: '14px 20px', color: 'var(--text-muted)' }}>{member.branch_id || member.branchId || '—'}</td>
                   <td style={{ padding: '14px 20px', textAlign: 'center' }}>
-                    <span style={{ color: member.active !== false ? '#00ff66' : '#ff8585', fontWeight: 600, fontSize: '0.8rem' }}>
+                    <span style={{ color: member.active !== false ? 'var(--accent-success)' : 'var(--accent-error)', fontWeight: 600, fontSize: '0.8rem' }}>
                       {member.active !== false ? 'Active' : 'Inactive'}
                     </span>
                   </td>
@@ -154,7 +154,7 @@ export default function StaffView() {
         </div>
       ) : null}
       {error && !loading && staff.length === 0 && (
-        <div className="glass-panel" style={{ textAlign: 'center', padding: '48px', color: '#ff8585' }}>
+        <div className="glass-panel" style={{ textAlign: 'center', padding: '48px', color: 'var(--accent-error)' }}>
           {error}
         </div>
       )}
