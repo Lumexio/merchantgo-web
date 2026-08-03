@@ -6,7 +6,7 @@ import {
   importTenantSnapshot,
   pushCatalogToGoogleDrive,
 } from '../../api/merchantgo.js';
-import { getSession } from '../../store/auth.js';
+import { getSession, getSelectedTenant } from '../../store/auth.js';
 import { useI18n } from '../../locales/index.jsx';
 import { useTheme } from '../../store/theme.jsx';
 
@@ -23,6 +23,9 @@ export default function SettingsView() {
   const { t, lang, setLang } = useI18n();
   const { theme, setTheme } = useTheme();
   const session = getSession();
+  const currentTenant = getSelectedTenant(session);
+  const userRole = currentTenant?.role || session?.role || 'staff';
+  const canChangeTheme = ['cashier', 'manager', 'admin', 'owner'].includes(userRole.toLowerCase());
   const isFree = session?.plan === 'FREE';
 
   const [driveStatus, setDriveStatus] = useState('');
@@ -147,16 +150,23 @@ export default function SettingsView() {
         </div>
       </div>
 
-      <div className="glass-panel" style={sectionStyle}>
-        <p style={labelStyle}>{t.settings.theme}</p>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {[['dark', t.settings.themeDark], ['light', t.settings.themeLight]].map(([val, label]) => (
-            <button key={val} onClick={() => setTheme(val)} className={theme === val ? 'btn-pos' : 'btn-secondary'} style={{ padding: '8px 20px' }}>
-              {label}
-            </button>
-          ))}
+      {canChangeTheme && (
+        <div className="glass-panel" style={sectionStyle}>
+          <p style={labelStyle}>{t.settings.theme}</p>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            {[
+              ['dark-default', t.settings.themeDark || 'Dark'], 
+              ['light-default', t.settings.themeLight || 'Light'],
+              ['dark-ocean', 'Ocean (Dark)'],
+              ['light-warm', 'Warm (Light)']
+            ].map(([val, label]) => (
+              <button key={val} onClick={() => setTheme(val)} className={theme === val ? 'btn-pos' : 'btn-secondary'} style={{ padding: '8px 20px' }}>
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="glass-panel" style={sectionStyle}>
         <p style={labelStyle}>{t.settings.googleDrive}</p>

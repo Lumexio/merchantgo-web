@@ -1,8 +1,8 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 const THEME_KEY = 'merchantgo.theme';
-export const ThemeContext = createContext({ theme: 'dark', setTheme: () => {} });
+export const ThemeContext = createContext({ theme: 'dark-default', setTheme: () => {} });
 export function ThemeProvider({ children }) {
-  const [theme, setThemeState] = useState(() => localStorage.getItem(THEME_KEY) || 'dark');
+  const [theme, setThemeState] = useState(() => localStorage.getItem(THEME_KEY) || 'dark-default');
 
   const setTheme = (t) => {
     localStorage.setItem(THEME_KEY, t);
