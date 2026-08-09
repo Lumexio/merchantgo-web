@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { getSession } from './store/auth.js';
 import AppShell from './components/layout/AppShell.jsx';
+import OnboardingConfigModal from './components/OnboardingConfigModal.jsx';
 import LoginView from './views/auth/LoginView.jsx';
 import RegisterView from './views/auth/RegisterView.jsx';
 import DashboardView from './views/dashboard/DashboardView.jsx';
@@ -22,7 +23,7 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<LoginView />} />
       <Route path="/register" element={<RegisterView />} />
-      <Route path="/" element={<RequireAuth><AppShell /></RequireAuth>}>
+      <Route path="/" element={<RequireAuth><AppShell /><OnboardingConfigModal /></RequireAuth>}>
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<DashboardView />} />
         <Route path="orders" element={<OrdersView />} />
