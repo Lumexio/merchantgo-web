@@ -14,7 +14,7 @@ async function request(path, options = {}) {
   const response = await fetch(`${API_BASE}/api/v1${path}`, options);
   const json = await response.json().catch(() => ({}));
   // ponytail: Automatically handle token expiry or manual invalidation edge cases
-  if (response.status === 401) {
+  if (response.status === 401 && !path.startsWith('/auth/')) {
     clearSession();
     window.location.href = '/login';
     return Promise.reject(new Error('Session expired. Please log in again.'));
