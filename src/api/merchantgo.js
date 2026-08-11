@@ -799,7 +799,14 @@ export async function importTenantSnapshot(snapshotValue, dryRun, resolutions = 
   }
   return merchantGoRequest('/tenant/snapshot/import', {
     method: 'POST',
-    body: JSON.stringify({ snapshot, dryRun, resolutions }),
+    body: JSON.stringify({ snapshot, dryRun, resolutions, serverManagedOnly: false }),
+  });
+}
+
+export function createCheckoutSession(targetPlan, targetAccountType = 'solo') {
+  return merchantGoRequest('/billing/checkout-session', {
+    method: 'POST',
+    body: JSON.stringify({ target_plan: targetPlan, target_account_type: targetAccountType }),
   });
 }
 

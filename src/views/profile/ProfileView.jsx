@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getSession } from '../../store/auth.js';
-import { listTenantMenuItems, listTenantStaff, listTenantBranches } from '../../api/merchantgo.js';
+import { listTenantMenuItems, listTenantStaff, listTenantBranches, createCheckoutSession } from '../../api/merchantgo.js';
 import { useI18n } from '../../locales/index.jsx';
 import PlanBadge from '../../components/ui/PlanBadge.jsx';
 
@@ -48,6 +48,17 @@ export default function ProfileView() {
     };
     load();
   }, []);
+
+  const handleUpgrade = async (planCode) => {
+    try {
+      const res = await createCheckoutSession(planCode, 'team'); // hardcode team for MVP
+      if (res && res.checkout_url) {
+        window.location.href = res.checkout_url;
+      }
+    } catch (err) {
+      alert(`Failed to start checkout: ${err.message}`);
+    }
+  };
 
   return (
     <div style={{ maxWidth: '640px' }}>
@@ -113,10 +124,19 @@ export default function ProfileView() {
                 <div style={{ textAlign: 'right' }}>
                   <p style={{ fontWeight: 700, color: isCurrent ? 'var(--primary)' : 'var(--text-main)', marginBottom: '6px' }}>{plan.price}</p>
                   {!isCurrent && (
-                    <a href="https://merchantgo.store/pricing" target="_blank" rel="noopener noreferrer"
-                      style={{ fontSize: '0.8rem', color: 'var(--primary)', textDecoration: 'none', border: '1px solid rgba(var(--primary-rgb, 255, 107, 0), 0.4)', borderRadius: '8px', padding: '4px 10px' }}>
+                    <button
+                      onClick={() => handleUpgrade(plan.code)}
+                      style={{ 
+                        fontSize: '0.8rem', 
+                        color: 'var(--primary)', 
+                        background: 'transparent',
+                        cursor: 'pointer',
+                        border: '1px solid rgba(var(--primary-rgb, 255, 107, 0), 0.4)', 
+                        borderRadius: '8px', 
+                        padding: '4px 10px' 
+                      }}>
                       {t.profile.upgradeCta}
-                    </a>
+                    </button>
                   )}
                 </div>
               </div>
