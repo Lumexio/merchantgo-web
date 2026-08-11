@@ -10,8 +10,9 @@ import {
 } from '../../store/auth.js';
 import { logoutAppwriteSession } from '../../api/merchantgo.js';
 import { useI18n } from '../../locales/index.jsx';
+import { Menu } from 'lucide-react';
 
-export default function AppBar() {
+export default function AppBar({ onMenuToggle }) {
   const { t } = useI18n();
   const navigate = useNavigate();
   const [session, setSessionState] = useState(() => getSession());
@@ -44,11 +45,16 @@ export default function AppBar() {
 
   return (
     <header style={{ borderBottom: '1px solid var(--border-glass)', padding: '12px 24px', backgroundColor: 'var(--header-bg)', backdropFilter: 'blur(16px)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-        {session?.name} <span style={{ color: 'var(--primary)', fontWeight: 700 }}>({session?.role})</span>
-        {' · '}
-        <span style={{ color: 'var(--text-muted)' }}>Plan: <strong style={{ color: 'var(--text-main)' }}>{session?.plan}</strong></span>
-      </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <button onClick={onMenuToggle} className="menu-toggle-btn">
+          <Menu size={20} />
+        </button>
+        <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+          {session?.name} <span style={{ color: 'var(--primary)', fontWeight: 700 }}>({session?.role})</span>
+          {' · '}
+          <span style={{ color: 'var(--text-muted)' }}>Plan: <strong style={{ color: 'var(--text-main)' }}>{session?.plan}</strong></span>
+        </span>
+      </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
         {!session?.session_temporary && tenantLabel && !showTenantSelect && (
           <span style={tenantChipStyle} title={session?.tenant_id}>

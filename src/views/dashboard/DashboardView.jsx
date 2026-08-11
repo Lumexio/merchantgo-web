@@ -220,6 +220,21 @@ export default function DashboardView() {
               </table>
             </div>
           )}
+
+          {/* SaaS Capacity Limits (Ponytail mode: native progress) */}
+          <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', marginTop: '24px' }}>
+            <div className="glass-panel" style={{ flex: 1, minWidth: '260px' }}>
+              <h3 style={{ fontFamily: 'Outfit', marginBottom: '18px', fontSize: '1rem' }}>Menu Items Capacity ({session?.plan} Plan)</h3>
+              <progress 
+                value={dashboard?.menuItemCount || 0} 
+                max={session?.plan === 'FREE' ? 25 : session?.plan === 'PRO' ? 100 : 250} 
+                style={{ width: '100%', height: '12px', accentColor: 'var(--primary)' }}
+              />
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginTop: '8px' }}>
+                {dashboard?.menuItemCount || 0} / {session?.plan === 'FREE' ? 25 : session?.plan === 'PRO' ? 100 : 250} Used
+              </p>
+            </div>
+          </div>
         </>
       )}
     </div>
