@@ -804,9 +804,10 @@ export async function importTenantSnapshot(snapshotValue, dryRun, resolutions = 
 }
 
 export function createCheckoutSession(targetPlan, targetAccountType = 'solo') {
+  const session = checkAppwriteSession();
   return merchantGoRequest('/billing/checkout-session', {
     method: 'POST',
-    body: JSON.stringify({ target_plan: targetPlan, target_account_type: targetAccountType }),
+    body: JSON.stringify({ userId: session?.id, target_plan: targetPlan, target_account_type: targetAccountType }),
   });
 }
 
