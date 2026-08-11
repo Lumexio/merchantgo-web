@@ -807,7 +807,12 @@ export function createCheckoutSession(targetPlan, targetAccountType = 'solo') {
   const session = checkAppwriteSession();
   return merchantGoRequest('/billing/checkout-session', {
     method: 'POST',
-    body: JSON.stringify({ userId: session?.id, target_plan: targetPlan, target_account_type: targetAccountType }),
+    body: JSON.stringify({
+      userId: session?.id,
+      target_plan: targetPlan,
+      target_account_type: targetAccountType,
+      return_url: `${window.location.origin}/profile?session_id={CHECKOUT_SESSION_ID}&plan=${targetPlan}`
+    }),
   });
 }
 
