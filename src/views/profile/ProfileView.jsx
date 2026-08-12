@@ -5,9 +5,9 @@ import { useI18n } from '../../locales/index.jsx';
 import PlanBadge from '../../components/ui/PlanBadge.jsx';
 
 const PLANS = [
-  { code: 'FREE', name: 'Free Solo Starter', price: '$0/mo', limits: '25 items · 1 staff · 1 branch' },
-  { code: 'PRO', name: 'Express Food Truck Pro', price: '$39/mo', limits: '100 items · 3 staff · 1 branch' },
-  { code: 'ENTERPRISE', name: 'Enterprise Hospitality', price: '$129/mo', limits: '250 items · 100 staff · 25 branches' },
+  { code: 'FREE', name: 'Free Starter', prices: { solo: '$0/mo', team: '$0/mo' }, limits: '25 items · 1 staff · 1 branch' },
+  { code: 'PRO', name: 'Merchantgo Pro', prices: { solo: '$12.99/mo', team: '$59.99/mo' }, limits: '100 items · 3 staff · 1 branch' },
+  { code: 'ENTERPRISE', name: 'Merchantgo Overlord', prices: { solo: '$39.99/mo', team: '$119.99/mo' }, limits: '250 items · 100 staff · 25 branches' },
 ];
 
 export default function ProfileView() {
@@ -49,9 +49,9 @@ export default function ProfileView() {
     load();
   }, []);
 
-  const handleUpgrade = async (planCode) => {
+  const handleUpgrade = async (planCode, accountType) => {
     try {
-      const res = await createCheckoutSession(planCode, 'team'); // hardcode team for MVP
+      const res = await createCheckoutSession(planCode, accountType);
       if (res && res.checkout_url) {
         window.location.href = res.checkout_url;
       }
@@ -122,22 +122,26 @@ export default function ProfileView() {
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem' }}>{plan.limits}</p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <p style={{ fontWeight: 700, color: isCurrent ? 'var(--primary)' : 'var(--text-main)', marginBottom: '6px' }}>{plan.price}</p>
-                  {!isCurrent && (
-                    <button
-                      onClick={() => handleUpgrade(plan.code)}
-                      style={{ 
-                        fontSize: '0.8rem', 
-                        color: 'var(--primary)', 
-                        background: 'transparent',
-                        cursor: 'pointer',
-                        border: '1px solid rgba(var(--primary-rgb, 255, 107, 0), 0.4)', 
-                        borderRadius: '8px', 
-                        padding: '4px 10px' 
-                      }}>
-                      {t.profile.upgradeCta}
-                    </button>
-                  )}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {plan.code !== 'FREE' ? (
+                      <>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Solo <strong style={{ color: 'var(--text-main)' }}>{plan.prices.solo}</strong></span>
+                          {!isCurrent && (
+                            <button onClick={() => handleUpgrade(plan.code, 'solo')} style={{ fontSize: '0.75rem', color: 'var(--primary)', background: 'transparent', cursor: 'pointer', border: '1px solid rgba(var(--primary-rgb, 255, 107, 0), 0.4)', borderRadius: '6px', padding: '4px 10px' }}>Upgrade Solo</button>
+                          )}
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Team <strong style={{ color: 'var(--text-main)' }}>{plan.prices.team}</strong></span>
+                          {!isCurrent && (
+                            <button onClick={() => handleUpgrade(plan.code, 'team')} style={{ fontSize: '0.75rem', color: 'var(--primary)', background: 'transparent', cursor: 'pointer', border: '1px solid rgba(var(--primary-rgb, 255, 107, 0), 0.4)', borderRadius: '6px', padding: '4px 10px' }}>Upgrade Team</button>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <p style={{ fontWeight: 700, color: isCurrent ? 'var(--primary)' : 'var(--text-main)', marginBottom: '6px' }}>{plan.prices.solo}</p>
+                    )}
+                  </div>
                 </div>
               </div>
             );
