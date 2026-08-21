@@ -747,8 +747,8 @@ export function listTenantReports() {
   return merchantGoRequest('/tenant/reports');
 }
 
-export function getTenantDashboardReport() {
-  return merchantGoRequest('/tenant/reports/dashboard');
+export function getTenantDashboardReport(consolidated = false) {
+  return merchantGoRequest(consolidated ? '/tenant/reports/dashboard?consolidated=true' : '/tenant/reports/dashboard');
 }
 
 export async function exportTenantSnapshot() {

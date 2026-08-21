@@ -5,6 +5,7 @@ import {
   clearSession,
   getSelectedTenant,
   getSession,
+  setSession,
   setSelectedTenant,
   subscribeSession,
 } from '../../store/auth.js';
@@ -62,28 +63,40 @@ export default function AppBar({ onMenuToggle }) {
           </span>
         )}
         {showTenantSelect && (
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            {t.dashboard.tenant}
-            <select
-              value={selectedTenant?.tenant_id || session?.tenant_id || ''}
-              onChange={(event) => setSelectedTenant(event.target.value)}
-              style={{
-                minWidth: '160px',
-                padding: '7px 10px',
-                borderRadius: '10px',
-                border: '1px solid var(--border-glass)',
-                backgroundColor: 'var(--glass-overlay)',
-                color: 'var(--text-main)',
-                fontSize: '0.82rem',
-              }}
-            >
-              {tenantOptions.map((tenant) => (
-                <option key={tenant.tenant_id} value={tenant.tenant_id}>
-                  {tenant.name || tenant.tenant_id}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '6px', color: session?.consolidated ? 'var(--primary)' : 'var(--text-muted)', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer' }}>
+              <input 
+                type="checkbox" 
+                checked={session?.consolidated === true} 
+                onChange={(e) => setSession({ ...session, consolidated: e.target.checked })}
+                style={{ accentColor: 'var(--primary)' }}
+              />
+              Consolidated View
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', opacity: session?.consolidated ? 0.5 : 1 }}>
+              {t.dashboard.tenant}
+              <select
+                disabled={session?.consolidated === true}
+                value={selectedTenant?.tenant_id || session?.tenant_id || ''}
+                onChange={(event) => setSelectedTenant(event.target.value)}
+                style={{
+                  minWidth: '160px',
+                  padding: '7px 10px',
+                  borderRadius: '10px',
+                  border: '1px solid var(--border-glass)',
+                  backgroundColor: 'var(--glass-overlay)',
+                  color: 'var(--text-main)',
+                  fontSize: '0.82rem',
+                }}
+              >
+                {tenantOptions.map((tenant) => (
+                  <option key={tenant.tenant_id} value={tenant.tenant_id}>
+                    {tenant.name || tenant.tenant_id}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
         )}
         <button onClick={handleLogout} className="btn-secondary" style={{ padding: '7px 14px', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '6px', borderColor: 'rgba(var(--accent-error-rgb, 255, 77, 77),0.4)', color: 'var(--accent-error)' }}>
           <LogOut size={15} /> {t.common.logout}

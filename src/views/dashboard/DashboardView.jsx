@@ -122,7 +122,7 @@ export default function DashboardView() {
     const loadAll = async () => {
       setLoading(true);
       setError('');
-      const dashboardResult = await getTenantDashboardReport()
+      const dashboardResult = await getTenantDashboardReport(session?.consolidated === true)
         .then((data) => ({ status: 'fulfilled', value: data }))
         .catch((reason) => ({ status: 'rejected', reason }));
       const driveResult = session?.plan === 'FREE'
@@ -145,7 +145,7 @@ export default function DashboardView() {
     return () => {
       cancelled = true;
     };
-  }, [session?.plan, session?.selected_tenant_id, session?.tenant_id, sessionStamp, t.common.error]);
+  }, [session?.plan, session?.selected_tenant_id, session?.tenant_id, session?.consolidated, sessionStamp, t.common.error]);
 
   const paymentTotal = Number(dashboard?.paymentBreakdown?.total || 0);
   const cash = Number(dashboard?.paymentBreakdown?.cash || 0);
