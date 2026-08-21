@@ -6,6 +6,7 @@ import LoginView from './views/auth/LoginView.jsx';
 import RegisterView from './views/auth/RegisterView.jsx';
 import DashboardView from './views/dashboard/DashboardView.jsx';
 import OrdersView from './views/orders/OrdersView.jsx';
+import KDSView from './views/kds/KDSView.jsx';
 import HistoryView from './views/history/HistoryView.jsx';
 import ZReportsView from './views/zreports/ZReportsView.jsx';
 import StaffView from './views/staff/StaffView.jsx';
@@ -27,6 +28,7 @@ export default function App() {
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<DashboardView />} />
         <Route path="orders" element={<OrdersView />} />
+        <Route path="kds" element={<KDSView />} />
         <Route path="history" element={<HistoryView />} />
         <Route path="zreports" element={<ZReportsView />} />
         <Route path="staff" element={<StaffView />} />

@@ -23,7 +23,11 @@ export default function OrdersView() {
     }
   };
 
-  useEffect(() => { fetchOrders(); }, []);
+  useEffect(() => { 
+    fetchOrders(); 
+    const t = setInterval(fetchOrders, 10000);
+    return () => clearInterval(t);
+  }, []);
 
   return (
     <div>

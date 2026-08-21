@@ -142,8 +142,10 @@ export default function DashboardView() {
     };
 
     loadAll();
+    const interval = setInterval(loadAll, 15000);
     return () => {
       cancelled = true;
+      clearInterval(interval);
     };
   }, [session?.plan, session?.selected_tenant_id, session?.tenant_id, session?.consolidated, sessionStamp, t.common.error]);
 

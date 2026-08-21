@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, Clock, FileText, Users, GitBranch, UtensilsCrossed, Settings, User } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, MonitorPlay, Clock, FileText, Users, GitBranch, UtensilsCrossed, Settings, User } from 'lucide-react';
 import { useI18n } from '../../locales/index.jsx';
 
 const NAV = [
   { to: '/dashboard', icon: LayoutDashboard, key: 'dashboard' },
   { to: '/orders', icon: ShoppingBag, key: 'orders' },
+  { to: '/kds', icon: MonitorPlay, key: 'kds', label: 'Kitchen Display' },
   { to: '/history', icon: Clock, key: 'history' },
   { to: '/zreports', icon: FileText, key: 'zreports' },
   { to: '/staff', icon: Users, key: 'staff' },
@@ -23,7 +24,7 @@ export default function NavDrawer({ isOpen, onClose }) {
           MERCHANT<span style={{ color: 'var(--primary)' }}>GO</span>
         </span>
       </div>
-      {NAV.map(({ to, icon: Icon, key }) => (
+      {NAV.map(({ to, icon: Icon, key, label }) => (
         <NavLink
           key={to}
           to={to}
@@ -39,7 +40,7 @@ export default function NavDrawer({ isOpen, onClose }) {
           })}
         >
           <Icon size={18} />
-          {t.nav[key]}
+          {label || t.nav[key]}
         </NavLink>
       ))}
     </nav>
