@@ -55,7 +55,12 @@ export default function KDSView() {
 
   return (
     <div style={{ padding: '0', display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      {!connected && (
+        <div style={{ background: '#ff4444', color: '#fff', padding: '16px', textAlign: 'center', fontWeight: 800, fontSize: '1.2rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', zIndex: 100, position: 'relative' }}>
+          ⚠️ DISCONNECTED: Kitchen is flying blind. Check network.
+        </div>
+      )}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', padding: '16px 24px 0 24px' }}>
         <h2 style={{ fontFamily: 'Outfit', fontSize: '1.6rem' }}>Kitchen Display System</h2>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.9rem', color: connected ? 'var(--accent-success)' : 'var(--accent-error)' }}>
           <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: connected ? 'var(--accent-success)' : 'var(--accent-error)' }}></div>
